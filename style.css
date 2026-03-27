@@ -149,7 +149,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
 .schedule-cell{min-width:34px;width:34px;height:34px;background:var(--surface);border:1px solid var(--border);border-radius:5px;cursor:pointer;position:relative;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;user-select:none;transition:background .1s,border-color .1s;}
 .schedule-cell:active{transform:scale(.91);}
 .schedule-cell.today-cell{border-style:dashed;border-color:var(--accent);border-width:1.5px;}
-.schedule-cell.future{opacity:.2;pointer-events:none;}
+.schedule-cell.future{opacity:.2;}
 .schedule-cell.schedule-drag-highlight{background:rgba(245,158,11,.25)!important;border:1px solid #f59e0b;border-width:2px;}
 
 .schedule-event-bars{position:absolute;inset:0;}
