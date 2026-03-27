@@ -1100,7 +1100,28 @@ async function init() {
     }, 400);
   }
 }
+
+// ── 식단 입력 버튼 이벤트 위임 (모바일 터치 호환) ────────────────────
+function _initDietInputButtons() {
+  const buttonContainer = document.getElementById('diet-input-buttons');
+  if (!buttonContainer) return;
+
+  buttonContainer.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    e.stopPropagation();
+
+    const action = btn.dataset.action;
+    if (action === 'addFood') {
+      openNutritionItemEditor(null);
+    } else if (action === 'photoUpload') {
+      openNutritionPhotoUpload();
+    }
+  }, false);
+}
+
 init();
+_initDietInputButtons();
 
 // ── window 등록 ──────────────────────────────────────────────────
 window.switchTab                = switchTab;
