@@ -67,6 +67,7 @@ import { MODAL_HTML as DIET_PLAN_MODAL }     from './modals/diet-plan-modal.js';
 import { MODAL_HTML as CHECKIN_MODAL }       from './modals/checkin-modal.js';
 import { MODAL_HTML as NUTRITION_SEARCH_MODAL }  from './modals/nutrition-search-modal.js';
 import { MODAL_HTML as NUTRITION_ITEM_MODAL }    from './modals/nutrition-item-modal.js';
+import { WEIGHT_MODAL_HTML as NUTRITION_WEIGHT_MODAL, openNutritionWeightModal, updateNutritionWeightPreview, closeNutritionWeightModal, confirmNutritionItemWithWeight } from './modals/nutrition-weight-modal.js';
 import { MODAL_HTML as FATSECRET_MODAL }     from './modals/fatsecret-modal.js';
 
 // 모달 HTML을 DOM에 주입
@@ -92,6 +93,7 @@ function injectModals() {
     CHECKIN_MODAL,
     NUTRITION_SEARCH_MODAL,
     NUTRITION_ITEM_MODAL,
+    NUTRITION_WEIGHT_MODAL,
     FATSECRET_MODAL
   ].join('\n');
 
@@ -586,6 +588,13 @@ async function _quickDeleteNutritionItem(id) {
   _renderNutritionDBList();
 }
 window._quickDeleteNutritionItem = _quickDeleteNutritionItem;
+
+// 중량 설정 모달 함수들을 window에 노출
+window.openNutritionWeightModal = openNutritionWeightModal;
+window.updateNutritionWeightPreview = updateNutritionWeightPreview;
+window.closeNutritionWeightModal = closeNutritionWeightModal;
+window.confirmNutritionItemWithWeight = confirmNutritionItemWithWeight;
+
 function closeSettingsModal(e) {
   if (e && e.target !== document.getElementById('settings-modal')) return;
   document.getElementById('settings-modal').classList.remove('open');
@@ -805,15 +814,18 @@ function renderNutritionSearchResults() {
     if (recentItems.length > 0) {
       html += `<div style="font-size:12px;font-weight:600;color:var(--text);padding:12px 8px;border-bottom:1px solid var(--border)">⭐ 즐겨찾기 (최근 ${recentItems.length}개)</div>`;
       html += recentItems.map(item => `
-        <div class="nutrition-result-row" onclick="selectNutritionItem('${item.id}')">
-          <div class="nutrition-result-name">🏠 ${item.name}</div>
-          <div class="nutrition-result-meta">
-            ${item.unit ? `<span>${item.unit}</span>` : ''}
-            <span>${item.nutrition?.kcal || item.kcal || 0}kcal</span>
-            ${item.nutrition?.carbs != null ? `<span>탄${item.nutrition.carbs}g</span>` : item.carbs != null ? `<span>탄${item.carbs}g</span>` : ''}
-            ${item.nutrition?.protein != null ? `<span>단${item.nutrition.protein}g</span>` : item.protein != null ? `<span>단${item.protein}g</span>` : ''}
-            ${item.nutrition?.fat != null ? `<span>지${item.nutrition.fat}g</span>` : item.fat != null ? `<span>지${item.fat}g</span>` : ''}
+        <div class="nutrition-result-row" style="display:flex;justify-content:space-between;align-items:center">
+          <div onclick="selectNutritionItem('${item.id}')" style="cursor:pointer;flex:1">
+            <div class="nutrition-result-name">🏠 ${item.name}</div>
+            <div class="nutrition-result-meta">
+              ${item.unit ? `<span>${item.unit}</span>` : ''}
+              <span>${item.nutrition?.kcal || item.kcal || 0}kcal</span>
+              ${item.nutrition?.carbs != null ? `<span>탄${item.nutrition.carbs}g</span>` : item.carbs != null ? `<span>탄${item.carbs}g</span>` : ''}
+              ${item.nutrition?.protein != null ? `<span>단${item.nutrition.protein}g</span>` : item.protein != null ? `<span>단${item.protein}g</span>` : ''}
+              ${item.nutrition?.fat != null ? `<span>지${item.nutrition.fat}g</span>` : item.fat != null ? `<span>지${item.fat}g</span>` : ''}
+            </div>
           </div>
+          <button onclick="event.stopPropagation(); removeFromFavorites('${item.id}')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:4px;flex-shrink:0" title="즐겨찾기에서 제거">✕</button>
         </div>
       `).join('');
     }
@@ -939,27 +951,8 @@ function selectNutritionItem(itemId) {
 
   if (!item || !_nutritionSearchMeal) return;
 
-  // 음식 항목 생성 (wt-foods-{meal}에 추가)
-  const foodListContainer = document.getElementById(`wt-foods-${_nutritionSearchMeal}`);
-  if (foodListContainer) {
-    const kcal = item.nutrition?.kcal || item.kcal || item.energy || 0;
-    const carbs = item.nutrition?.carbs || item.carbs || 0;
-    const protein = item.nutrition?.protein || item.protein || 0;
-    const fat = item.nutrition?.fat || item.fat || 0;
-
-    const foodItem = document.createElement('div');
-    foodItem.className = 'meal-food-chip';
-
-    foodItem.innerHTML = `
-      <div class="meal-food-chip-name">${item.name}</div>
-      <div class="meal-food-chip-kcal">${kcal}kcal | 탄${carbs}g 단${protein}g 지${fat}g</div>
-      <button class="meal-food-chip-del" onclick="this.parentElement.remove()" title="삭제">✕</button>
-    `;
-
-    foodListContainer.appendChild(foodItem);
-  }
-
-  document.getElementById('nutrition-search-modal').classList.remove('open');
+  // 중량 설정 모달 열기
+  openNutritionWeightModal(item);
 }
 
 // ── 영양 DB 항목 편집 모달 ────────────────────────────────────────
