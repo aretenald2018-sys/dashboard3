@@ -41,7 +41,6 @@ export function renderCalendar() {
     table.appendChild(_makeHead(_currentYear, m, days));
 
     const tbody = document.createElement('tbody');
-    tbody.appendChild(_scheduleRow(_currentYear, m, days));
     tbody.appendChild(_gymRow(_currentYear, m, days));
     tbody.appendChild(_cfRow(_currentYear, m, days));
     tbody.appendChild(_dietRow(_currentYear, m, days));
@@ -155,29 +154,6 @@ function _dietRow(year, m, days) {
     const cell = _makeCell(year, m, d);
     if (dok === true)  { cell.classList.add('diet-ok');  const ic=document.createElement('span');ic.className='cell-icon';ic.textContent='✅';cell.appendChild(ic); }
     if (dok === false) { cell.classList.add('diet-bad'); const ic=document.createElement('span');ic.className='cell-icon';ic.textContent='❌';cell.appendChild(ic); }
-    td.appendChild(cell); row.appendChild(td);
-  }
-  return row;
-}
-
-function _scheduleRow(year, m, days) {
-  const row = document.createElement('tr');
-  const lbl = document.createElement('td');
-  lbl.className='row-label';
-  lbl.textContent='📅 스케줄';
-  row.appendChild(lbl);
-
-  for (let d = 1; d <= days; d++) {
-    const td = document.createElement('td');
-    if (isBeforeStart(year, m, d)) { td.style.display = 'none'; row.appendChild(td); continue; }
-
-    const cell = document.createElement('div');
-    cell.className = 'schedule-cell';
-    if (isToday(year,m,d))  cell.classList.add('today-cell');
-    if (isFuture(year,m,d)) cell.classList.add('future');
-
-    const dn = document.createElement('div'); dn.className='day-num'; dn.textContent=d; cell.appendChild(dn);
-
     td.appendChild(cell); row.appendChild(td);
   }
   return row;
