@@ -756,9 +756,26 @@ async function deleteCheckinFromModal() {
 // ── 영양 DB 검색 팝업 ─────────────────────────────────────────────
 let _nutritionSearchMeal = null;
 
-function openNutritionSearch(mealId) {
+async function openNutritionSearch(mealId) {
   _nutritionSearchMeal = mealId;
   document.getElementById('nutrition-search-input').value = '';
+
+  // CSV 데이터 로드 (첫 번 호출 시만)
+  if (!window._nutritionCSVLoaded) {
+    try {
+      // GitHub Pages vs localhost 자동 감지
+      const isGithubPages = window.location.pathname.includes('/dashboard3/');
+      const csvPath = isGithubPages
+        ? '/dashboard3/public/data/foods.csv'
+        : '/public/data/foods.csv';
+      await loadCSVDatabase(csvPath);
+      window._nutritionCSVLoaded = true;
+      console.log('[영양검색] CSV 로드됨:', csvPath);
+    } catch (e) {
+      console.warn('[영양검색] CSV 로드 실패:', e);
+    }
+  }
+
   renderNutritionSearchResults();
   document.getElementById('nutrition-search-modal').classList.add('open');
   setTimeout(() => document.getElementById('nutrition-search-input').focus(), 100);
