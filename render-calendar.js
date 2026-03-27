@@ -240,13 +240,11 @@ function _scheduleRow(year, m, days) {
       bar.className = 'schedule-event-bar';
       const isStart = i === idxS;
       const isEnd   = i === idxE;
-      const barW = (idxE - idxS + 1) * 100;  // 전체 셀 단위로
-      const barL = isStart ? 0 : ((i - idxS) * 100);
 
       bar.style.cssText = [
         `position:absolute`,
-        `left:${barL}%`,
-        `width:${isStart && isEnd ? '100%' : (isStart || isEnd ? '100%' : '100%')}`,
+        `left:0`,
+        `width:100%`,
         `top:${BAR_GAP + track * (BAR_H + BAR_GAP)}px`,
         `height:${BAR_H}px`,
         `background:${ev.color || '#f59e0b'}`,
