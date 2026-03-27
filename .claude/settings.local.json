@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find . -name foods.csv -o -name *.csv)",
+      "mcp__Claude_Preview__preview_start"
+    ]
+  }
+}
