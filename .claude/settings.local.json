@@ -6,7 +6,11 @@
       "Bash(wc -l C:\\\\Users\\\\USER\\\\Desktop\\\\dashboard3-main\\\\\\(backup\\\\\\)\\\\render-workout.js)",
       "Bash(wc -l \"C:\\\\Users\\\\USER\\\\Desktop\\\\dashboard3-main\\(backup\\)\\\\modals\\\\nutrition-item-modal.js\")",
       "Bash(head -5 \"/c/Users/USER/Desktop/dashboard3-main\\(backup\\)/public/data/foods.csv\")",
-      "Bash(wc -l \"/c/Users/USER/Desktop/dashboard3-main\\(backup\\)/public/data/foods.csv\")"
+      "Bash(wc -l \"/c/Users/USER/Desktop/dashboard3-main\\(backup\\)/public/data/foods.csv\")",
+      "Bash(ls -la \"C:\\\\Users\\\\USER\\\\Desktop\\\\dashboard3-main\\(backup\\)\\\\public\\\\data\" \")",
+      "Bash(ls -la \"C:\\\\Users\\\\USER\\\\Desktop\\\\dashboard3-main\\(backup\\)\\\\public\"\")",
+      "Bash(find \"C:/Users/USER/Desktop/dashboard3-main\\(backup\\)\" -name \"foods.csv\")",
+      "Bash(tail -100 \"C:/Users/USER/Desktop/dashboard3-main\\(backup\\)/app.js\")"
     ]
   }
 }

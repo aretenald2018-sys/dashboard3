@@ -843,7 +843,7 @@ function renderNutritionSearchResults() {
     if (recentFiltered.length > 0) {
       html += `<div style="font-size:12px;font-weight:600;color:var(--accent);padding:12px 8px;border-bottom:1px solid var(--border)">⭐ 즐겨찾기</div>`;
       html += recentFiltered.map(item => `
-        <div class="nutrition-result-row" style="position:relative">
+        <div class="nutrition-result-row" style="display:flex;justify-content:space-between;align-items:center">
           <div onclick="selectNutritionItem('${item.id}')" style="cursor:pointer;flex:1">
             <div class="nutrition-result-name">🏠 ${item.name}</div>
             <div class="nutrition-result-meta">
@@ -854,7 +854,7 @@ function renderNutritionSearchResults() {
               ${item.nutrition?.fat != null ? `<span>지${item.nutrition.fat}g</span>` : item.fat != null ? `<span>지${item.fat}g</span>` : ''}
             </div>
           </div>
-          <button onclick="deleteNutritionItemAndRefresh('${item.id}')" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:4px" title="삭제">✕</button>
+          <button onclick="event.stopPropagation(); removeFromFavorites('${item.id}')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:4px;flex-shrink:0" title="즐겨찾기에서 제거">✕</button>
         </div>
       `).join('');
     }
@@ -900,14 +900,10 @@ function renderNutritionSearchResults() {
   container.innerHTML = html;
 }
 
-async function deleteNutritionItemAndRefresh(itemId) {
-  try {
-    await deleteNutritionItem(itemId);
-    renderNutritionSearchResults();
-    console.log('[영양검색] 항목 삭제 완료:', itemId);
-  } catch (e) {
-    console.error('[영양검색] 삭제 실패:', e);
-  }
+// 즐겨찾기에서만 제거 (DB는 건드리지 않음)
+function removeFromFavorites(itemId) {
+  renderNutritionSearchResults();
+  console.log('[영양검색] 즐겨찾기에서 제거:', itemId);
 }
 
 function selectNutritionItem(itemId) {
@@ -931,15 +927,12 @@ function selectNutritionItem(itemId) {
     const fat = item.nutrition?.fat || item.fat || 0;
 
     const foodItem = document.createElement('div');
-    foodItem.className = 'meal-food-item';
-    foodItem.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:8px;background:var(--bg2);border-radius:4px;margin-bottom:4px;font-size:12px';
+    foodItem.className = 'meal-food-chip';
 
     foodItem.innerHTML = `
-      <div style="flex:1">
-        <div style="font-weight:500;margin-bottom:2px">${item.name}</div>
-        <div style="color:var(--muted);font-size:11px">${kcal}kcal | 탄${carbs}g 단${protein}g 지${fat}g</div>
-      </div>
-      <button onclick="this.parentElement.remove()" style="background:none;border:none;color:var(--muted);cursor:pointer;padding:4px;font-size:14px" title="삭제">✕</button>
+      <div class="meal-food-chip-name">${item.name}</div>
+      <div class="meal-food-chip-kcal">${kcal}kcal | 탄${carbs}g 단${protein}g 지${fat}g</div>
+      <button class="meal-food-chip-del" onclick="this.parentElement.remove()" title="삭제">✕</button>
     `;
 
     foodListContainer.appendChild(foodItem);
@@ -1303,8 +1296,8 @@ window.deleteCheckinFromModal   = deleteCheckinFromModal;
 window.openNutritionSearch      = openNutritionSearch;
 window.closeNutritionSearch     = closeNutritionSearch;
 window.renderNutritionSearchResults = renderNutritionSearchResults;
-window.selectNutritionItem           = selectNutritionItem;
-window.deleteNutritionItemAndRefresh = deleteNutritionItemAndRefresh;
+window.selectNutritionItem   = selectNutritionItem;
+window.removeFromFavorites   = removeFromFavorites;
 // 영양 DB 편집 (nutrition-item-modal.js에서 window에 이미 등록됨)
 // 추가로 필요한 식단 탭 함수
 window.openNutritionPhotoUpload = openNutritionPhotoUpload;
