@@ -813,9 +813,12 @@ function renderNutritionSearchResults() {
 
     if (recentItems.length > 0) {
       html += `<div style="font-size:12px;font-weight:600;color:var(--text);padding:12px 8px;border-bottom:1px solid var(--border)">⭐ 즐겨찾기 (최근 ${recentItems.length}개)</div>`;
-      html += recentItems.map(item => `
+      html += recentItems.map((item, idx) => {
+        const itemDataKey = `_nutritionItem_${item.id}`;
+        window[itemDataKey] = item;  // 전역 변수로 저장
+        return `
         <div class="nutrition-result-row" style="display:flex;justify-content:space-between;align-items:center">
-          <div onclick="selectNutritionItem('${item.id}')" style="cursor:pointer;flex:1">
+          <div onclick="selectNutritionItemFromCache('${itemDataKey}')" style="cursor:pointer;flex:1">
             <div class="nutrition-result-name">🏠 ${item.name}</div>
             <div class="nutrition-result-meta">
               ${item.unit ? `<span>${item.unit}</span>` : ''}
@@ -827,13 +830,17 @@ function renderNutritionSearchResults() {
           </div>
           <button onclick="event.stopPropagation(); removeFromFavorites('${item.id}')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:4px;flex-shrink:0" title="즐겨찾기에서 제거">✕</button>
         </div>
-      `).join('');
+      `;
+      }).join('');
     }
 
     if (csvResults.length > 0) {
       html += `<div style="font-size:12px;font-weight:600;color:var(--text);padding:12px 8px;border-bottom:1px solid var(--border);margin-top:8px">📊 CSV 데이터</div>`;
-      html += csvResults.slice(0, 20).map(item => `
-        <div class="nutrition-result-row" onclick="selectNutritionItem('${item.id}')">
+      html += csvResults.slice(0, 20).map((item, idx) => {
+        const itemDataKey = `_nutritionItem_${item.id}`;
+        window[itemDataKey] = item;  // 전역 변수로 저장
+        return `
+        <div class="nutrition-result-row" onclick="selectNutritionItemFromCache('${itemDataKey}')">
           <div class="nutrition-result-name">📊 ${item.name}</div>
           <div class="nutrition-result-meta">
             <span>${item.energy || 0}kcal</span>
@@ -842,7 +849,8 @@ function renderNutritionSearchResults() {
             ${item.fat != null ? `<span>지${item.fat}g</span>` : ''}
           </div>
         </div>
-      `).join('');
+      `;
+      }).join('');
     }
 
     if (!recentItems.length && !csvResults.length) {
@@ -861,9 +869,12 @@ function renderNutritionSearchResults() {
     // 즐겨찾기 (검색 결과 중)
     if (recentFiltered.length > 0) {
       html += `<div style="font-size:12px;font-weight:600;color:var(--accent);padding:12px 8px;border-bottom:1px solid var(--border)">⭐ 즐겨찾기</div>`;
-      html += recentFiltered.map(item => `
+      html += recentFiltered.map((item, idx) => {
+        const itemDataKey = `_nutritionItem_${item.id}`;
+        window[itemDataKey] = item;  // 전역 변수로 저장
+        return `
         <div class="nutrition-result-row" style="display:flex;justify-content:space-between;align-items:center">
-          <div onclick="selectNutritionItem('${item.id}')" style="cursor:pointer;flex:1">
+          <div onclick="selectNutritionItemFromCache('${itemDataKey}')" style="cursor:pointer;flex:1">
             <div class="nutrition-result-name">🏠 ${item.name}</div>
             <div class="nutrition-result-meta">
               ${item.unit ? `<span>${item.unit}</span>` : ''}
@@ -875,14 +886,18 @@ function renderNutritionSearchResults() {
           </div>
           <button onclick="event.stopPropagation(); removeFromFavorites('${item.id}')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:4px;flex-shrink:0" title="즐겨찾기에서 제거">✕</button>
         </div>
-      `).join('');
+      `;
+      }).join('');
     }
 
     // DB 결과
     if (dbResults.length > 0) {
       html += `<div style="font-size:12px;font-weight:600;color:var(--text);padding:12px 8px;border-bottom:1px solid var(--border);margin-top:8px">🏠 DB 검색 결과</div>`;
-      html += dbResults.slice(0, 15).map(item => `
-        <div class="nutrition-result-row" onclick="selectNutritionItem('${item.id}')">
+      html += dbResults.slice(0, 15).map((item, idx) => {
+        const itemDataKey = `_nutritionItem_${item.id}`;
+        window[itemDataKey] = item;  // 전역 변수로 저장
+        return `
+        <div class="nutrition-result-row" onclick="selectNutritionItemFromCache('${itemDataKey}')">
           <div class="nutrition-result-name">🏠 ${item.name}</div>
           <div class="nutrition-result-meta">
             ${item.unit ? `<span>${item.unit}</span>` : ''}
@@ -892,14 +907,18 @@ function renderNutritionSearchResults() {
             ${item.nutrition?.fat != null ? `<span>지${item.nutrition.fat}g</span>` : item.fat != null ? `<span>지${item.fat}g</span>` : ''}
           </div>
         </div>
-      `).join('');
+      `;
+      }).join('');
     }
 
     // CSV 결과
     if (csvResults.length > 0) {
       html += `<div style="font-size:12px;font-weight:600;color:var(--text);padding:12px 8px;border-bottom:1px solid var(--border);margin-top:8px">📊 CSV 검색 결과</div>`;
-      html += csvResults.slice(0, 15).map(item => `
-        <div class="nutrition-result-row" onclick="selectNutritionItem('${item.id}')">
+      html += csvResults.slice(0, 15).map((item, idx) => {
+        const itemDataKey = `_nutritionItem_${item.id}`;
+        window[itemDataKey] = item;  // 전역 변수로 저장
+        return `
+        <div class="nutrition-result-row" onclick="selectNutritionItemFromCache('${itemDataKey}')">
           <div class="nutrition-result-name">📊 ${item.name}</div>
           <div class="nutrition-result-meta">
             <span>${item.energy || 0}kcal</span>
@@ -908,7 +927,8 @@ function renderNutritionSearchResults() {
             ${item.fat != null ? `<span>지${item.fat}g</span>` : ''}
           </div>
         </div>
-      `).join('');
+      `;
+      }).join('');
     }
 
     if (!recentFiltered.length && !dbResults.length && !csvResults.length) {
@@ -954,9 +974,33 @@ function selectNutritionItem(itemId) {
     item = getNutritionDB().find(n => n.id === itemId);
   }
 
-  if (!item || !_nutritionSearchMeal) return;
+  console.log('[selectNutritionItem] 찾은 항목:', { itemId, item, cacheSize: { recent: _nutritionSearchCache.recent?.length, db: _nutritionSearchCache.db?.length, csv: _nutritionSearchCache.csv?.length } });
+
+  if (!item || !_nutritionSearchMeal) {
+    console.error('[selectNutritionItem] 항목을 찾을 수 없거나 meal이 없습니다:', { itemId, hasItem: !!item, hasMeal: !!_nutritionSearchMeal });
+    return;
+  }
 
   // 중량 설정 모달 열기
+  openNutritionWeightModal(item);
+}
+
+// CSV/DB 항목을 전역 변수에서 직접 가져와서 열기
+// (캐시 덮어쓰기 문제를 피하기 위해 항목 자체를 저장함)
+function selectNutritionItemFromCache(itemDataKey) {
+  const item = window[itemDataKey];
+
+  if (!item) {
+    console.error('[selectNutritionItemFromCache] 항목을 찾을 수 없습니다:', itemDataKey);
+    return;
+  }
+
+  if (!_nutritionSearchMeal) {
+    console.error('[selectNutritionItemFromCache] 선택된 meal이 없습니다');
+    return;
+  }
+
+  console.log('[selectNutritionItemFromCache] 항목 열기:', { itemDataKey, item });
   openNutritionWeightModal(item);
 }
 
@@ -1316,6 +1360,7 @@ window.openNutritionSearch      = openNutritionSearch;
 window.closeNutritionSearch     = closeNutritionSearch;
 window.renderNutritionSearchResults = renderNutritionSearchResults;
 window.selectNutritionItem   = selectNutritionItem;
+window.selectNutritionItemFromCache = selectNutritionItemFromCache;
 window.removeFromFavorites   = removeFromFavorites;
 // 영양 DB 편집 (nutrition-item-modal.js에서 window에 이미 등록됨)
 // 추가로 필요한 식단 탭 함수
