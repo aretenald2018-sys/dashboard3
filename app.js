@@ -98,6 +98,15 @@ function injectModals() {
   ].join('\n');
 
   container.innerHTML = modalsHTML;
+
+  // CSV 데이터 백그라운드 로드 (앱 시작 시)
+  const isGithubPages = window.location.pathname.includes('/dashboard3/');
+  const csvPath = isGithubPages
+    ? '/dashboard3/public/data/foods.csv'
+    : '/public/data/foods.csv';
+  loadCSVDatabase(csvPath)
+    .then(() => console.log('[app] CSV 데이터 백그라운드 로드 완료'))
+    .catch(e => console.warn('[app] CSV 로드 실패:', e));
 }
 
 // ── 탭 전환 ──────────────────────────────────────────────────────
@@ -771,10 +780,10 @@ async function openNutritionSearch(mealId) {
   window._nutritionSearchMeal = mealId;  // window에도 저장 (디버깅용)
   document.getElementById('nutrition-search-input').value = '';
 
-  // CSV 데이터 로드 (첫 번 호출 시만)
+  // CSV 데이터는 이미 백그라운드에서 로드됨 (injectModals에서)
+  // 만약 로드되지 않았다면 여기서 로드
   if (!window._nutritionCSVLoaded) {
     try {
-      // GitHub Pages vs localhost 자동 감지
       const isGithubPages = window.location.pathname.includes('/dashboard3/');
       const csvPath = isGithubPages
         ? '/dashboard3/public/data/foods.csv'
@@ -787,7 +796,8 @@ async function openNutritionSearch(mealId) {
     }
   }
 
-  renderNutritionSearchResults();
+  // 초기: 최근 항목만 표시 (검색어 입력 시 전체 결과 표시)
+  renderNutritionSearchInitial();
   document.getElementById('nutrition-search-modal').classList.add('open');
   setTimeout(() => document.getElementById('nutrition-search-input').focus(), 100);
 }
@@ -795,6 +805,63 @@ async function openNutritionSearch(mealId) {
 function closeNutritionSearch(e) {
   if (e && e.target !== document.getElementById('nutrition-search-modal')) return;
   document.getElementById('nutrition-search-modal').classList.remove('open');
+}
+
+// ── 검색 입력 디바운싱 (실시간 추천 유지 + 렌더링 최적화) ────────────────────
+let _nutritionSearchTimer = null;
+let _lastSearchQuery = null;
+
+function debouncedNutritionSearch() {
+  const q = (document.getElementById('nutrition-search-input').value || '').trim();
+
+  // 검색어가 변경되지 않으면 무시
+  if (q === _lastSearchQuery) return;
+  _lastSearchQuery = q;
+
+  // 검색어 있으면 즉시 결과 표시, 없으면 최근 항목만 표시
+  clearTimeout(_nutritionSearchTimer);
+  _nutritionSearchTimer = setTimeout(() => {
+    if (q) {
+      renderNutritionSearchResults();
+    } else {
+      renderNutritionSearchInitial();
+    }
+  }, 300);
+}
+
+// ── 초기 검색 결과 (최근 항목만 표시) ────────────────────────────────────
+function renderNutritionSearchInitial() {
+  const container = document.getElementById('nutrition-search-results');
+  const recentItems = getRecentNutritionItems(10);
+
+  let html = '';
+
+  if (recentItems.length > 0) {
+    html += `<div style="font-size:12px;font-weight:600;color:var(--text);padding:12px 8px;border-bottom:1px solid var(--border)">⭐ 최근 항목</div>`;
+    html += recentItems.map((item, idx) => {
+      const itemDataKey = `_nutritionItem_${item.id}`;
+      window[itemDataKey] = item;
+      return `
+        <div class="nutrition-result-row" style="display:flex;justify-content:space-between;align-items:center">
+          <div onclick="selectNutritionItemFromCache('${itemDataKey}')" style="cursor:pointer;flex:1">
+            <div class="nutrition-result-name">🏠 ${item.name}</div>
+            <div class="nutrition-result-meta">
+              ${item.unit ? `<span>${item.unit}</span>` : ''}
+              <span>${item.nutrition?.kcal || item.kcal || 0}kcal</span>
+              ${item.nutrition?.carbs != null ? `<span>탄${item.nutrition.carbs}g</span>` : item.carbs != null ? `<span>탄${item.carbs}g</span>` : ''}
+              ${item.nutrition?.protein != null ? `<span>단${item.nutrition.protein}g</span>` : item.protein != null ? `<span>단${item.protein}g</span>` : ''}
+              ${item.nutrition?.fat != null ? `<span>지${item.nutrition.fat}g</span>` : item.fat != null ? `<span>지${item.fat}g</span>` : ''}
+            </div>
+          </div>
+          <button onclick="event.stopPropagation(); removeFromFavorites('${item.id}')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:4px;flex-shrink:0" title="즐겨찾기에서 제거">✕</button>
+        </div>
+      `;
+    }).join('');
+  } else {
+    html = `<div style="font-size:12px;color:var(--muted);text-align:center;padding:16px">검색어를 입력해주세요</div>`;
+  }
+
+  container.innerHTML = html;
 }
 
 function renderNutritionSearchResults() {
@@ -1358,6 +1425,7 @@ window.deleteCheckinFromModal   = deleteCheckinFromModal;
 // 영양 DB 검색
 window.openNutritionSearch      = openNutritionSearch;
 window.closeNutritionSearch     = closeNutritionSearch;
+window.debouncedNutritionSearch = debouncedNutritionSearch;
 window.renderNutritionSearchResults = renderNutritionSearchResults;
 window.selectNutritionItem   = selectNutritionItem;
 window.selectNutritionItemFromCache = selectNutritionItemFromCache;
