@@ -755,6 +755,7 @@ async function deleteCheckinFromModal() {
 
 // ── 영양 DB 검색 팝업 ─────────────────────────────────────────────
 let _nutritionSearchMeal = null;
+let _nutritionSearchCache = { db: [], csv: [], recent: [] }; // 검색 결과 캐시
 
 async function openNutritionSearch(mealId) {
   _nutritionSearchMeal = mealId;
@@ -798,6 +799,9 @@ function renderNutritionSearchResults() {
     const recentItems = getRecentNutritionItems(10);
     const csvResults = searchCSVFood(''); // CSV 상위 30개
 
+    // 캐시 저장
+    _nutritionSearchCache = { db: [], csv: csvResults, recent: recentItems };
+
     if (recentItems.length > 0) {
       html += `<div style="font-size:12px;font-weight:600;color:var(--text);padding:12px 8px;border-bottom:1px solid var(--border)">⭐ 즐겨찾기 (최근 ${recentItems.length}개)</div>`;
       html += recentItems.map(item => `
@@ -838,6 +842,9 @@ function renderNutritionSearchResults() {
     const recentFiltered = getRecentNutritionItems(10).filter(n => n.name?.toLowerCase().includes(q.toLowerCase()));
     const dbResults = searchNutritionDB(q);
     const csvResults = searchCSVFood(q);
+
+    // 캐시 저장
+    _nutritionSearchCache = { db: dbResults, csv: csvResults, recent: recentFiltered };
 
     // 즐겨찾기 (검색 결과 중)
     if (recentFiltered.length > 0) {
@@ -907,13 +914,27 @@ function removeFromFavorites(itemId) {
 }
 
 function selectNutritionItem(itemId) {
-  // DB에서 찾기
-  let item = getNutritionDB().find(n => n.id === itemId);
+  // 캐시된 검색 결과에서 찾기
+  let item = null;
 
-  // DB에 없으면 CSV에서 찾기
+  // 최근 항목에서 찾기
+  if (_nutritionSearchCache.recent && _nutritionSearchCache.recent.length > 0) {
+    item = _nutritionSearchCache.recent.find(n => n.id === itemId);
+  }
+
+  // DB 검색 결과에서 찾기
+  if (!item && _nutritionSearchCache.db && _nutritionSearchCache.db.length > 0) {
+    item = _nutritionSearchCache.db.find(n => n.id === itemId);
+  }
+
+  // CSV 검색 결과에서 찾기
+  if (!item && _nutritionSearchCache.csv && _nutritionSearchCache.csv.length > 0) {
+    item = _nutritionSearchCache.csv.find(c => c.id === itemId);
+  }
+
+  // 캐시가 없으면 DB 전체에서 찾기
   if (!item) {
-    const csvResults = searchCSVFood('');
-    item = csvResults.find(c => c.id === itemId);
+    item = getNutritionDB().find(n => n.id === itemId);
   }
 
   if (!item || !_nutritionSearchMeal) return;

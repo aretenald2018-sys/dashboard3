@@ -93,8 +93,10 @@ export function searchCSVFood(searchTerm) {
     const key = food['제품명'];
     if (!seen.has(key)) {
       seen.add(key);
+      // 안정적인 ID: 제품명과 제조사 조합 (검색 결과 개수와 무관)
+      const stableId = `csv_${encodeURIComponent(food['제품명'])}_${encodeURIComponent(food['제조사'])}`;
       results.push({
-        id: `csv_${results.length}`,
+        id: stableId,
         name: food['제품명'],
         manufacturer: food['제조사'],
         energy: parseFloat(food['에너지(kcal)']) || 0,
