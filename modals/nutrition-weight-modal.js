@@ -1,5 +1,6 @@
-// render-workout 함수 import
+// 함수 import
 import { wtAddFoodItem } from '../render-workout.js';
+import { saveNutritionItem } from '../data.js';
 
 export const WEIGHT_MODAL_HTML = `
 <div class="modal-overlay" id="nutrition-weight-modal" onclick="closeNutritionWeightModal(event)" style="display:none;z-index:1001">
@@ -134,6 +135,27 @@ export function confirmNutritionItemWithWeight() {
     console.log('[nutrition-weight-modal] 음식이 추가되었습니다:', { mealId, foodItem });
   } catch(e) {
     console.error('[nutrition-weight-modal] 음식 추가 실패:', e);
+  }
+
+  // 음식을 최근 항목 DB에도 저장 (최근 목록에 표시되도록)
+  try {
+    const nutritionRecord = {
+      id: item.id,
+      name: item.name,
+      nutrition: {
+        kcal: baseKcal,
+        carbs: baseCarbs,
+        protein: baseProtein,
+        fat: baseFat,
+      },
+      servingSize: servingSize,
+      unit: item.unit || 'g',
+    };
+    saveNutritionItem(nutritionRecord)
+      .then(() => console.log('[nutrition-weight-modal] 최근 항목에 저장됨:', item.name))
+      .catch(e => console.warn('[nutrition-weight-modal] 최근 항목 저장 실패:', e));
+  } catch(e) {
+    console.error('[nutrition-weight-modal] 최근 항목 저장 오류:', e);
   }
 
   // 모달 닫기
