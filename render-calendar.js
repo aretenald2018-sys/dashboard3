@@ -80,6 +80,7 @@ function _scheduleStartDrag(year, m, d, e) {
 }
 
 function _highlightScheduleDrag(year, m) {
+  // 드래그 중인 월만 오버레이 업데이트
   const cal = document.getElementById('calendar');
   const monthSec = Array.from(cal.querySelectorAll('.month-section')).find(sec => {
     const hdr = sec.querySelector('.month-header');
@@ -89,51 +90,20 @@ function _highlightScheduleDrag(year, m) {
   if (!monthSec) return;
 
   const wrap = monthSec.querySelector('.grid-wrap');
-  if (!wrap) return;
+  const table = monthSec.querySelector('.grid-table');
+  if (!wrap || !table) return;
 
   // 기존 드래그 오버레이 제거
-  const existingOverlay = wrap.querySelector('.schedule-drag-overlay-container');
+  const existingOverlay = wrap.querySelector('.schedule-events-overlay[data-drag="true"]');
   if (existingOverlay) existingOverlay.remove();
 
-  const s = Math.min(_scheduleDragStart, _scheduleDragEnd);
-  const e = Math.max(_scheduleDragStart, _scheduleDragEnd);
-
+  // 오버레이 재구성 (드래그 상태 포함)
   const days = daysInMonth(year, m);
-  const monthStart = dateKey(year, m, 1);
-  const monthEnd = dateKey(year, m, days);
-
-  // 드래그 범위를 나타내는 오버레이 바 생성
-  const startDate = dateKey(year, m, s);
-  const endDate = dateKey(year, m, e);
-
-  // 드래그 범위의 열 위치 계산
-  const startCol = s;
-  const endCol = e;
-
-  const BAR_H = 12;
-  const pctL = (startCol / (days + 1)) * 100;
-  const pctW = ((endCol - startCol + 1) / (days + 1)) * 100;
-
-  const dragOverlay = document.createElement('div');
-  dragOverlay.className = 'schedule-drag-overlay-container';
-  dragOverlay.style.cssText = `position:relative;width:100%;height:${BAR_H + 4}px;overflow:visible;margin-top:2px;`;
-
-  const bar = document.createElement('div');
-  bar.className = 'schedule-drag-bar';
-  bar.style.cssText = [
-    `left:calc(${pctL}% + 38px)`,
-    `width:calc(${pctW}% - 40px)`,
-    `height:${BAR_H}px`,
-    `background:rgba(245,158,11,0.3)`,
-    `border:2px solid #f59e0b`,
-    'position:absolute',
-    'border-radius:3px',
-    'top:0',
-  ].join(';');
-
-  dragOverlay.appendChild(bar);
-  wrap.appendChild(dragOverlay);
-  _scheduleDragOverlay = dragOverlay;
+  const newOverlay = _buildScheduleEventsOverlay(year, m, days, table);
+  if (newOverlay) {
+    wrap.appendChild(newOverlay);
+    _scheduleDragOverlay = newOverlay;
+  }
 }
 
 function _clearScheduleDragHighlight() {
@@ -321,7 +291,22 @@ function _buildScheduleEventsOverlay(year, m, days, table) {
   // 이번 월의 모든 이벤트 가져오기
   const monthStart = dateKey(year, m, 1);
   const monthEnd   = dateKey(year, m, days);
-  const allEvents  = getEvents().filter(ev => ev.start <= monthEnd && ev.end >= monthStart);
+  let allEvents  = getEvents().filter(ev => ev.start <= monthEnd && ev.end >= monthStart);
+
+  // 드래그 중이면 임시 이벤트 추가
+  if (_scheduleDragYear === year && _scheduleDragMonth === m && _scheduleDragStart && _scheduleDragEnd) {
+    const s = Math.min(_scheduleDragStart, _scheduleDragEnd);
+    const e = Math.max(_scheduleDragStart, _scheduleDragEnd);
+    const dragEvent = {
+      start: dateKey(year, m, s),
+      end: dateKey(year, m, e),
+      title: '',
+      color: 'rgba(245,158,11,0.3)',
+      isDrag: true,
+      borderColor: '#f59e0b'
+    };
+    allEvents = [...allEvents, dragEvent];
+  }
 
   if (!allEvents.length) return null;
 
@@ -357,18 +342,31 @@ function _buildScheduleEventsOverlay(year, m, days, table) {
 
     const bar = document.createElement('div');
     bar.className = 'schedule-event-bar-overlay';
-    bar.style.cssText = [
+
+    const styles = [
       `left:calc(${pctL}% + 38px)`,  // 38px = row-label width
       `width:calc(${pctW}% - 40px)`,
       `top:${track * (BAR_H + BAR_GAP)}px`,
       `height:${BAR_H}px`,
       `background:${ev.color || '#f59e0b'}`,
-    ].join(';');
+    ];
+
+    // 드래그 바의 경우 border 추가
+    if (ev.isDrag) {
+      styles.push(`border:2px solid ${ev.borderColor || '#f59e0b'}`);
+      styles.push('box-sizing:border-box');
+    }
+
+    bar.style.cssText = styles.join(';');
     bar.textContent = ev.title;
-    bar.addEventListener('click', (e) => {
-      e.stopPropagation();
-      window.openCalEventModal(ev.start, ev.end, ev.id);
-    });
+
+    if (!ev.isDrag) {
+      bar.addEventListener('click', (e) => {
+        e.stopPropagation();
+        window.openCalEventModal(ev.start, ev.end, ev.id);
+      });
+    }
+
     overlay.appendChild(bar);
   });
 
