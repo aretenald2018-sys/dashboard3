@@ -533,6 +533,10 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
 .monthly-event-bar:active{opacity:.75;}
 .event-bar-title{font-size:10px;font-weight:600;color:#fff;padding:0 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none;}
 .monthly-cal-cell.drag-highlight{background:rgba(245,158,11,.18)!important;}
+/* ── 연간달력 스케줄 행 ── */
+.schedule-event-bar{-webkit-tap-highlight-color:transparent;}
+.schedule-event-bar:active{opacity:.75;}
+.schedule-cell.drag-highlight{background:rgba(245,158,11,.18)!important;}
 
 /* ── 이벤트 색상 선택 ── */
 .event-color-picker{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;}

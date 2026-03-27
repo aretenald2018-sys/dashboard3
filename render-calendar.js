@@ -44,6 +44,7 @@ export function renderCalendar() {
     tbody.appendChild(_gymRow(_currentYear, m, days));
     tbody.appendChild(_cfRow(_currentYear, m, days));
     tbody.appendChild(_dietRow(_currentYear, m, days));
+    tbody.appendChild(_scheduleRow(_currentYear, m, days));
     table.appendChild(tbody);
 
     wrap.appendChild(table);
@@ -166,4 +167,149 @@ function _makeCell(y, m, d) {
   const dn = document.createElement('div'); dn.className='day-num'; dn.textContent=d; cell.appendChild(dn);
   cell.addEventListener('click', () => { if (!isFuture(y,m,d)) window.openSheet(y,m,d); });
   return cell;
+}
+
+// ── 스케줄 행 ──────────────────────────────────────────────────────
+function _scheduleRow(year, m, days) {
+  const visibleDays = [];
+  for (let d = 1; d <= days; d++) {
+    if (!isBeforeStart(year, m, d)) visibleDays.push(d);
+  }
+  const N = visibleDays.length;
+  if (N === 0) return null;
+
+  const mStr   = String(m + 1).padStart(2, '0');
+  const mStart = `${year}-${mStr}-01`;
+  const mEnd   = `${year}-${mStr}-${String(days).padStart(2, '0')}`;
+  const events = getEvents().filter(ev => ev.start <= mEnd && ev.end >= mStart);
+
+  // 트랙 배정
+  const BAR_H = 20, BAR_GAP = 2;
+  const tracks = [];
+  const evTracks = events.map(ev => {
+    const s = ev.start < mStart ? mStart : ev.start;
+    const e = ev.end   > mEnd   ? mEnd   : ev.end;
+    for (let t = 0; t < tracks.length; t++) {
+      if (!tracks[t].some(r => r.s <= e && r.e >= s)) {
+        tracks[t].push({ s, e }); return t;
+      }
+    }
+    tracks.push([{ s, e }]); return tracks.length - 1;
+  });
+
+  const totalH = Math.max(28, tracks.length * (BAR_H + BAR_GAP) + BAR_GAP);
+
+  const row = document.createElement('tr');
+  const lbl = document.createElement('td');
+  lbl.className = 'row-label'; lbl.textContent = '📅 일정';
+  row.appendChild(lbl);
+
+  // dateKey → visible index 맵
+  const dayToIdx = {};
+  visibleDays.forEach((d, i) => { dayToIdx[dateKey(year, m, d)] = i; });
+
+  // 드래그 상태
+  let dragStart = null, dragEnd = null;
+
+  for (let i = 0; i < N; i++) {
+    const d = visibleDays[i];
+    const td = document.createElement('td');
+    if (isBeforeStart(year, m, d)) { td.style.display = 'none'; row.appendChild(td); continue; }
+
+    td.className = 'schedule-cell';
+    td.dataset.date = dateKey(year, m, d);
+    td.style.position = 'relative';
+    td.style.padding = '0';
+    td.style.height = `${totalH}px`;
+    td.style.verticalAlign = 'top';
+    td.style.cursor = 'crosshair';
+
+    // 절대 위치 컨테이너
+    const container = document.createElement('div');
+    container.style.cssText = `position:absolute;top:0;left:0;right:0;height:${totalH}px;pointer-events:none;`;
+
+    // 이벤트 바들 렌더링
+    events.forEach((ev, idx) => {
+      const cStart   = ev.start < mStart ? mStart : ev.start;
+      const cEnd     = ev.end   > mEnd   ? mEnd   : ev.end;
+      const idxS     = dayToIdx[cStart];
+      const idxE     = dayToIdx[cEnd];
+      if (idxS === undefined || idxE === undefined) return;
+      if (i < idxS || i > idxE) return;  // 이 셀에 걸치지 않음
+
+      const track = evTracks[idx];
+      const bar = document.createElement('div');
+      bar.className = 'schedule-event-bar';
+      const isStart = i === idxS;
+      const isEnd   = i === idxE;
+      const barW = (idxE - idxS + 1) * 100;  // 전체 셀 단위로
+      const barL = isStart ? 0 : ((i - idxS) * 100);
+
+      bar.style.cssText = [
+        `position:absolute`,
+        `left:${barL}%`,
+        `width:${isStart && isEnd ? '100%' : (isStart || isEnd ? '100%' : '100%')}`,
+        `top:${BAR_GAP + track * (BAR_H + BAR_GAP)}px`,
+        `height:${BAR_H}px`,
+        `background:${ev.color || '#f59e0b'}`,
+        `border-radius:${isStart?'4px':'0'} ${isEnd?'4px':'0'} ${isEnd?'4px':'0'} ${isStart?'4px':'0'}`,
+        `pointer-events:auto`,
+        `cursor:pointer`,
+        `display:flex`,
+        `align-items:center`,
+        `overflow:hidden`,
+        `transition:opacity .12s`,
+      ].join(';');
+
+      const prefix = !isStart && i === idxS ? '← ' : '';
+      const suffix = !isEnd && i === idxE ? ' →' : '';
+      bar.innerHTML = `<span class="event-bar-title">${prefix}${ev.title}${suffix}</span>`;
+      bar.addEventListener('click', e => {
+        e.stopPropagation();
+        window.openCalEventModal(ev.start, ev.end, ev.id);
+      });
+      container.appendChild(bar);
+    });
+
+    td.appendChild(container);
+
+    // 드래그 이벤트
+    td.addEventListener('mousedown', e => {
+      if (isFuture(year, m, d)) return;
+      dragStart = dateKey(year, m, d);
+      dragEnd = dragStart;
+    });
+
+    td.addEventListener('mousemove', e => {
+      if (!dragStart) return;
+      if (isFuture(year, m, d)) return;
+      dragEnd = dateKey(year, m, d);
+      // 하이라이트 업데이트 (행 전체)
+      const allCells = row.querySelectorAll('.schedule-cell[data-date]');
+      const lo = dragStart <= dragEnd ? dragStart : dragEnd;
+      const hi = dragStart <= dragEnd ? dragEnd : dragStart;
+      allCells.forEach(cell => {
+        cell.classList.toggle('drag-highlight', cell.dataset.date >= lo && cell.dataset.date <= hi);
+      });
+    });
+
+    row.appendChild(td);
+  }
+
+  // mouseup은 document 레벨에서 한 번만
+  const onUp = () => {
+    if (!dragStart) return;
+    const allCells = row.querySelectorAll('.schedule-cell');
+    allCells.forEach(c => c.classList.remove('drag-highlight'));
+    if (dragEnd && dragStart !== dragEnd) {
+      const s = dragStart <= dragEnd ? dragStart : dragEnd;
+      const e = dragStart <= dragEnd ? dragEnd : dragStart;
+      window.openCalEventModal(s, e, null);
+    }
+    dragStart = null;
+    dragEnd = null;
+  };
+  document.addEventListener('mouseup', onUp);
+
+  return row;
 }
