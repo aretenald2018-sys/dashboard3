@@ -12,13 +12,13 @@ import { MUSCLES }                                               from './config.
 let _currentYear = new Date().getFullYear();
 export const getCurrentYear = () => _currentYear;
 
-// ── 드래그 상태 ──────────────────────────────────────────────────
-let _scheduleDragStart  = null;
-let _scheduleDragEnd    = null;
-let _scheduleDragYear   = null;
-let _scheduleDragMonth  = null;
-let _scheduleWasDragged = false;
-let _scheduleDragOverlay = null;
+// ── 드래그 상태 (비활성화 - 모달 UI로 변경) ──────────────────────────────────────────────────
+// let _scheduleDragStart  = null;
+// let _scheduleDragEnd    = null;
+// let _scheduleDragYear   = null;
+// let _scheduleDragMonth  = null;
+// let _scheduleWasDragged = false;
+// let _scheduleDragOverlay = null;
 
 export function changeYear(delta) {
   _currentYear += delta;
@@ -263,7 +263,33 @@ function _dietRow(year, m, days) {
 
 function _scheduleRow(year, m, days) {
   const row = document.createElement('tr');
-  const lbl = document.createElement('td'); lbl.className='row-label'; lbl.textContent='📅 스케줄'; row.appendChild(lbl);
+  const lbl = document.createElement('td');
+  lbl.className='row-label';
+
+  const lblContainer = document.createElement('div');
+  lblContainer.style.display = 'flex';
+  lblContainer.style.alignItems = 'center';
+  lblContainer.style.gap = '8px';
+
+  const lblText = document.createElement('span');
+  lblText.textContent = '📅 스케줄';
+  lblContainer.appendChild(lblText);
+
+  const addBtn = document.createElement('button');
+  addBtn.className = 'schedule-add-btn';
+  addBtn.textContent = '+';
+  addBtn.style.fontSize = '14px';
+  addBtn.style.padding = '2px 6px';
+  addBtn.style.border = '1px solid #666';
+  addBtn.style.borderRadius = '4px';
+  addBtn.style.background = 'transparent';
+  addBtn.style.color = '#fff';
+  addBtn.style.cursor = 'pointer';
+  addBtn.addEventListener('click', () => window.openScheduleCreateModal());
+  lblContainer.appendChild(addBtn);
+
+  lbl.appendChild(lblContainer);
+  row.appendChild(lbl);
 
   // 각 날짜의 셀 생성 (event bar는 별도 오버레이로 렌더링)
   for (let d = 1; d <= days; d++) {
@@ -277,11 +303,6 @@ function _scheduleRow(year, m, days) {
 
     const dn = document.createElement('div'); dn.className='day-num'; dn.textContent=d; cell.appendChild(dn);
 
-    // 드래그 이벤트 (스케줄 생성) - 미래 날짜도 허용
-    cell.addEventListener('mousedown', (e) => {
-      _scheduleStartDrag(year, m, d, e);
-    });
-
     td.appendChild(cell); row.appendChild(td);
   }
   return row;
@@ -293,20 +314,20 @@ function _buildScheduleEventsOverlay(year, m, days, table) {
   const monthEnd   = dateKey(year, m, days);
   let allEvents  = getEvents().filter(ev => ev.start <= monthEnd && ev.end >= monthStart);
 
-  // 드래그 중이면 임시 이벤트 추가
-  if (_scheduleDragYear === year && _scheduleDragMonth === m && _scheduleDragStart && _scheduleDragEnd) {
-    const s = Math.min(_scheduleDragStart, _scheduleDragEnd);
-    const e = Math.max(_scheduleDragStart, _scheduleDragEnd);
-    const dragEvent = {
-      start: dateKey(year, m, s),
-      end: dateKey(year, m, e),
-      title: '',
-      color: 'rgba(245,158,11,0.3)',
-      isDrag: true,
-      borderColor: '#f59e0b'
-    };
-    allEvents = [...allEvents, dragEvent];
-  }
+  // 드래그 중이면 임시 이벤트 추가 (비활성화 - 모달 UI로 변경)
+  // if (_scheduleDragYear === year && _scheduleDragMonth === m && _scheduleDragStart && _scheduleDragEnd) {
+  //   const s = Math.min(_scheduleDragStart, _scheduleDragEnd);
+  //   const e = Math.max(_scheduleDragStart, _scheduleDragEnd);
+  //   const dragEvent = {
+  //     start: dateKey(year, m, s),
+  //     end: dateKey(year, m, e),
+  //     title: '',
+  //     color: 'rgba(245,158,11,0.3)',
+  //     isDrag: true,
+  //     borderColor: '#f59e0b'
+  //   };
+  //   allEvents = [...allEvents, dragEvent];
+  // }
 
   if (!allEvents.length) return null;
 
