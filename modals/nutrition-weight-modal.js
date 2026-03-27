@@ -1,3 +1,6 @@
+// render-workout 함수 import
+import { wtAddFoodItem } from '../render-workout.js';
+
 export const WEIGHT_MODAL_HTML = `
 <div class="modal-overlay" id="nutrition-weight-modal" onclick="closeNutritionWeightModal(event)" style="display:none;z-index:1001">
   <div class="modal-sheet">
@@ -123,14 +126,14 @@ export function confirmNutritionItemWithWeight() {
     fat: fat,
   };
 
-  console.log('[nutrition-weight-modal] 음식 추가:', { mealId, foodItem, wtAddFoodItem: !!window.wtAddFoodItem });
+  console.log('[nutrition-weight-modal] 음식 추가:', { mealId, foodItem });
 
-  // render-workout.js의 wtAddFoodItem()을 호출하여 상태 관리 및 렌더링 처리
-  if (window.wtAddFoodItem) {
-    window.wtAddFoodItem(mealId, foodItem);
-    console.log('[nutrition-weight-modal] 음식이 추가되었습니다');
-  } else {
-    console.error('[nutrition-weight-modal] wtAddFoodItem 함수를 찾을 수 없습니다!');
+  // render-workout.js의 wtAddFoodItem()을 직접 호출하여 상태 관리 및 렌더링 처리
+  try {
+    wtAddFoodItem(mealId, foodItem);
+    console.log('[nutrition-weight-modal] 음식이 추가되었습니다:', { mealId, foodItem });
+  } catch(e) {
+    console.error('[nutrition-weight-modal] 음식 추가 실패:', e);
   }
 
   // 모달 닫기
