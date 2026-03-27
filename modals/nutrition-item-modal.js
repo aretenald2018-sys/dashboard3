@@ -435,16 +435,21 @@ export async function saveNutritionItemFromModal() {
 
   try {
     const { saveNutritionItem } = await import('../data.js');
-    await saveNutritionItem(item);
+    const savedItem = await saveNutritionItem(item);
     alert('저장되었습니다!');
     closeNutritionItemModal();
 
-    // 저장 후 검색 결과 업데이트 (새로운 데이터 반영)
+    // 저장 후 검색 결과 업데이트 (새로운 데이터 즉시 반영)
     if (window.renderNutritionSearchResults) {
+      // DOM 업데이트 보장을 위해 약간의 지연
       setTimeout(() => {
+        // renderNutritionSearchResults 호출 (최신 데이터 로드)
         window.renderNutritionSearchResults();
-        if (window._renderNutritionDBList) window._renderNutritionDBList();
-      }, 50);
+        // DB 목록 업데이트
+        if (window._renderNutritionDBList) {
+          window._renderNutritionDBList();
+        }
+      }, 100);
     }
   } catch (e) {
     alert('저장 실패: ' + e.message);

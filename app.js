@@ -916,68 +916,8 @@ function selectNutritionItem(itemId) {
 // ── 영양 DB 항목 편집 모달 ────────────────────────────────────────
 let _nutritionItemId = null;
 
-function openNutritionItemEditor(id) {
-  _nutritionItemId = id || null;
-  if (id) {
-    const item = getNutritionDB().find(n => n.id === id);
-    if (item) {
-      document.getElementById('ni-name').value   = item.name    || '';
-      document.getElementById('ni-unit').value   = item.unit    || '';
-      document.getElementById('ni-kcal').value   = item.kcal    || '';
-      document.getElementById('ni-carbs').value  = item.carbs   ?? '';
-      document.getElementById('ni-protein').value= item.protein ?? '';
-      document.getElementById('ni-fat').value    = item.fat     ?? '';
-      document.getElementById('ni-note').value   = item.note    || '';
-    }
-    document.getElementById('nutrition-item-title').textContent = '음식 수정';
-    document.getElementById('ni-delete-btn').style.display = 'inline-block';
-  } else {
-    document.getElementById('ni-name').value   = '';
-    document.getElementById('ni-unit').value   = '';
-    document.getElementById('ni-kcal').value   = '';
-    document.getElementById('ni-carbs').value  = '';
-    document.getElementById('ni-protein').value= '';
-    document.getElementById('ni-fat').value    = '';
-    document.getElementById('ni-note').value   = '';
-    document.getElementById('nutrition-item-title').textContent = '음식 추가';
-    document.getElementById('ni-delete-btn').style.display = 'none';
-  }
-  document.getElementById('nutrition-search-modal').classList.remove('open');
-  document.getElementById('nutrition-item-modal').classList.add('open');
-}
-
-function closeNutritionItemModal(e) {
-  if (e && e.target !== document.getElementById('nutrition-item-modal')) return;
-  document.getElementById('nutrition-item-modal').classList.remove('open');
-}
-
-async function saveNutritionItemFromModal() {
-  const name = document.getElementById('ni-name').value.trim();
-  if (!name) { alert('음식 이름을 입력해주세요.'); return; }
-  const item = {
-    id:      _nutritionItemId || `ni_${Date.now()}`,
-    name,
-    unit:    document.getElementById('ni-unit').value.trim()    || null,
-    kcal:    parseFloat(document.getElementById('ni-kcal').value)    || 0,
-    carbs:   parseFloat(document.getElementById('ni-carbs').value)   ?? null,
-    protein: parseFloat(document.getElementById('ni-protein').value) ?? null,
-    fat:     parseFloat(document.getElementById('ni-fat').value)     ?? null,
-    note:    document.getElementById('ni-note').value.trim()         || null,
-  };
-  await saveNutritionItem(item);
-  document.getElementById('nutrition-item-modal').classList.remove('open');
-  renderNutritionSearchResults();
-  _renderNutritionDBList();
-}
-
-async function deleteNutritionItemFromModal() {
-  if (!_nutritionItemId) return;
-  if (!confirm('이 음식을 DB에서 삭제할까요?')) return;
-  await deleteNutritionItem(_nutritionItemId);
-  document.getElementById('nutrition-item-modal').classList.remove('open');
-  renderNutritionSearchResults();
-  _renderNutritionDBList();
-}
+// nutrition-item-modal.js에서 import한 함수들을 사용
+// (app.js의 openNutritionItemEditor, saveNutritionItemFromModal, deleteNutritionItemFromModal 제거됨)
 
 // ── 식품영양성분 DB 검색 (식품의약품안전처 / data.go.kr) ───────────
 let _fsMeal = 'breakfast';
