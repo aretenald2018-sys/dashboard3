@@ -275,7 +275,9 @@ function _scheduleRow(year, m, days) {
 
   // 드래그 이벤트 (월간달력과 동일한 방식)
   function getDate(el) {
-    const d = el?.closest?.('.schedule-cell')?.dataset?.date || null;
+    const cell = el?.closest?.('.schedule-cell');
+    if (!cell) return null;
+    const d = cell.dataset.date;
     return (d && !isFuture(year, m, parseInt(d.split('-')[2]))) ? d : null;
   }
 
