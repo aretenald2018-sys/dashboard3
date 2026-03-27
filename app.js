@@ -535,6 +535,7 @@ async function saveCalEventFromModal() {
   await saveEvent(ev);
   document.getElementById('cal-event-modal').classList.remove('open');
   renderMonthlyCalendar();
+  renderCalendar();
 }
 
 async function deleteCalEventFromModal() {
@@ -544,6 +545,7 @@ async function deleteCalEventFromModal() {
   if (result.success) {
     document.getElementById('cal-event-modal').classList.remove('open');
     renderMonthlyCalendar();
+    renderCalendar();
   } else {
     alert(`⚠️ 일정 삭제 실패: ${result.error}`);
   }

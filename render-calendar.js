@@ -5,15 +5,110 @@
 import { MONTHS, DAYS }                                          from './config.js';
 import { getMuscles, getCF, dietDayOk, getExList,
          daysInMonth, isToday, isFuture, isBeforeStart,
-         getGymSkip, getGymHealth, getCFSkip, getCFHealth }      from './data.js';
+         getGymSkip, getGymHealth, getCFSkip, getCFHealth,
+         getEvents, dateKey }                                    from './data.js';
 import { MUSCLES }                                               from './config.js';
 
 let _currentYear = new Date().getFullYear();
 export const getCurrentYear = () => _currentYear;
 
+// ── 드래그 상태 ──────────────────────────────────────────────────
+let _scheduleDragStart  = null;
+let _scheduleDragEnd    = null;
+let _scheduleDragYear   = null;
+let _scheduleDragMonth  = null;
+let _scheduleWasDragged = false;
+
 export function changeYear(delta) {
   _currentYear += delta;
   renderCalendar();
+}
+
+// ── 스케줄 드래그 핸들러 ──────────────────────────────────────────
+function _scheduleStartDrag(year, m, d, e) {
+  if (isFuture(year, m, d)) return;  // 미래 날짜는 드래그 불가
+
+  _scheduleDragStart = d;
+  _scheduleDragEnd = d;
+  _scheduleDragYear = year;
+  _scheduleDragMonth = m;
+  _scheduleWasDragged = false;
+
+  e.preventDefault();
+
+  const handleMove = (e2) => {
+    const target = e2.target.closest('.schedule-cell');
+    if (!target) return;
+
+    const dayNumEl = target.querySelector('.day-num');
+    if (!dayNumEl) return;
+
+    const d2 = parseInt(dayNumEl.textContent);
+    if (isNaN(d2) || isFuture(year, m, d2)) return;
+
+    if (d2 !== _scheduleDragEnd) {
+      _scheduleDragEnd = d2;
+      _scheduleWasDragged = true;
+      _highlightScheduleDrag(year, m);
+    }
+  };
+
+  const handleUp = () => {
+    document.removeEventListener('mousemove', handleMove);
+    document.removeEventListener('mouseup', handleUp);
+
+    _clearScheduleDragHighlight();
+
+    if (_scheduleWasDragged && _scheduleDragEnd && _scheduleDragStart !== _scheduleDragEnd) {
+      const s = _scheduleDragStart <= _scheduleDragEnd ? _scheduleDragStart : _scheduleDragEnd;
+      const e = _scheduleDragStart <= _scheduleDragEnd ? _scheduleDragEnd : _scheduleDragStart;
+      const startDate = dateKey(year, m, s);
+      const endDate = dateKey(year, m, e);
+      window.openCalEventModal(startDate, endDate, null);
+    }
+
+    _scheduleDragStart = null;
+    _scheduleDragEnd = null;
+    _scheduleDragYear = null;
+    _scheduleDragMonth = null;
+    setTimeout(() => { _scheduleWasDragged = false; }, 50);
+  };
+
+  document.addEventListener('mousemove', handleMove);
+  document.addEventListener('mouseup', handleUp);
+}
+
+function _highlightScheduleDrag(year, m) {
+  const cal = document.getElementById('calendar');
+  const monthSec = Array.from(cal.querySelectorAll('.month-section')).find(sec => {
+    const hdr = sec.querySelector('.month-header');
+    return hdr && hdr.textContent.includes(`${year}년 ${MONTHS[m]}`);
+  });
+
+  if (!monthSec) return;
+
+  const s = Math.min(_scheduleDragStart, _scheduleDragEnd);
+  const e = Math.max(_scheduleDragStart, _scheduleDragEnd);
+
+  monthSec.querySelectorAll('tr').forEach((tr, rowIdx) => {
+    if (rowIdx === 0) return;  // thead 스킵
+    const cells = tr.querySelectorAll('.schedule-cell');
+    cells.forEach((cell, colIdx) => {
+      const dayNum = parseInt(cell.querySelector('.day-num')?.textContent || 0);
+      if (dayNum >= s && dayNum <= e) {
+        cell.classList.add('schedule-drag-highlight');
+      } else {
+        cell.classList.remove('schedule-drag-highlight');
+      }
+    });
+  });
+}
+
+function _clearScheduleDragHighlight() {
+  const cal = document.getElementById('calendar');
+  cal?.querySelectorAll('.schedule-drag-highlight')?.forEach(el => {
+    el.classList.remove('schedule-drag-highlight');
+  });
 }
 
 export function renderCalendar() {
@@ -37,6 +132,7 @@ export function renderCalendar() {
     table.appendChild(_makeHead(_currentYear, m, days));
 
     const tbody = document.createElement('tbody');
+    tbody.appendChild(_scheduleRow(_currentYear, m, days));
     tbody.appendChild(_gymRow(_currentYear, m, days));
     tbody.appendChild(_cfRow(_currentYear, m, days));
     tbody.appendChild(_dietRow(_currentYear, m, days));
@@ -148,6 +244,75 @@ function _dietRow(year, m, days) {
     const cell = _makeCell(year, m, d);
     if (dok === true)  { cell.classList.add('diet-ok');  const ic=document.createElement('span');ic.className='cell-icon';ic.textContent='✅';cell.appendChild(ic); }
     if (dok === false) { cell.classList.add('diet-bad'); const ic=document.createElement('span');ic.className='cell-icon';ic.textContent='❌';cell.appendChild(ic); }
+    td.appendChild(cell); row.appendChild(td);
+  }
+  return row;
+}
+
+function _scheduleRow(year, m, days) {
+  const row = document.createElement('tr');
+  const lbl = document.createElement('td'); lbl.className='row-label'; lbl.textContent='📅 스케줄'; row.appendChild(lbl);
+
+  // 이번 월의 모든 이벤트 가져오기
+  const monthStart = dateKey(year, m, 1);
+  const monthEnd   = dateKey(year, m, days);
+  const allEvents  = getEvents().filter(ev => ev.start <= monthEnd && ev.end >= monthStart);
+
+  // 트랙 배정 (겹치는 이벤트 처리)
+  const tracks = [];
+  const evTracks = allEvents.map(ev => {
+    const s = ev.start < monthStart ? monthStart : ev.start;
+    const e = ev.end > monthEnd ? monthEnd : ev.end;
+    for (let t = 0; t < tracks.length; t++) {
+      if (!tracks[t].some(r => r.s <= e && r.e >= s)) {
+        tracks[t].push({s,e}); return t;
+      }
+    }
+    tracks.push([{s,e}]); return tracks.length - 1;
+  });
+
+  // 각 날짜의 셀 생성
+  for (let d = 1; d <= days; d++) {
+    const td = document.createElement('td');
+    if (isBeforeStart(year, m, d)) { td.style.display = 'none'; row.appendChild(td); continue; }
+
+    const cell = document.createElement('div');
+    cell.className = 'schedule-cell';
+    if (isToday(year,m,d))  cell.classList.add('today-cell');
+    if (isFuture(year,m,d)) cell.classList.add('future');
+
+    const dn = document.createElement('div'); dn.className='day-num'; dn.textContent=d; cell.appendChild(dn);
+
+    // 이 날짜에 걸친 이벤트 바 렌더링
+    const dateStr = dateKey(year, m, d);
+    const cellEvents = allEvents.filter(ev => ev.start <= dateStr && ev.end >= dateStr);
+
+    if (cellEvents.length > 0) {
+      const barsDiv = document.createElement('div');
+      barsDiv.className = 'schedule-event-bars';
+
+      cellEvents.forEach((ev, idx) => {
+        const track = evTracks[allEvents.indexOf(ev)];
+        const bar = document.createElement('div');
+        bar.className = 'schedule-event-bar';
+        bar.style.background = ev.color || '#f59e0b';
+        bar.style.top = `${track * 14}px`;
+        bar.textContent = ev.title;
+        bar.addEventListener('click', (e) => {
+          e.stopPropagation();
+          window.openCalEventModal(ev.start, ev.end, ev.id);
+        });
+        barsDiv.appendChild(bar);
+      });
+
+      cell.appendChild(barsDiv);
+    }
+
+    // 드래그 이벤트 (스케줄 생성)
+    cell.addEventListener('mousedown', (e) => {
+      _scheduleStartDrag(year, m, d, e);
+    });
+
     td.appendChild(cell); row.appendChild(td);
   }
   return row;
