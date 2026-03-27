@@ -35,7 +35,7 @@ import { renderWine, openWineModal, closeWineModal,
          searchCriticRatings }                    from './render-wine.js';
 import {
   loadWorkoutDate, changeWorkoutDate, goToTodayWorkout, saveWorkoutDay,
-  wtSetGymStatus, wtSetCFStatus, wtToggleStretching, wtToggleWineFree,
+  wtSetGymStatus, wtSetCFStatus, wtToggleStretching, wtToggleWineFree, wtToggleMealSkipped,
   wtOpenExercisePicker, wtCloseExercisePicker,
   wtOpenExerciseEditor, wtCloseExerciseEditor,
   wtSaveExerciseFromEditor, wtDeleteExerciseFromEditor,
@@ -1345,6 +1345,7 @@ window.wtSetGymStatus           = wtSetGymStatus;
 window.wtSetCFStatus            = wtSetCFStatus;
 window.wtToggleStretching       = wtToggleStretching;
 window.wtToggleWineFree         = wtToggleWineFree;
+window.wtToggleMealSkipped      = wtToggleMealSkipped;
 window.wtOpenExercisePicker     = wtOpenExercisePicker;
 window.wtCloseExercisePicker    = wtCloseExercisePicker;
 window.wtOpenExerciseEditor     = wtOpenExerciseEditor;

@@ -15,6 +15,9 @@ let _gymStatus  = 'none'; // 'done'|'skip'|'health'|'none'
 let _cfStatus   = 'none';
 let _stretching = false;
 let _wineFree   = false;
+let _breakfastSkipped = false;
+let _lunchSkipped = false;
+let _dinnerSkipped = false;
 let _diet       = _emptyDiet();
 
 function _emptyDiet() {
@@ -49,6 +52,9 @@ export function loadWorkoutDate(y, m, d) {
 
   _stretching = !!day.stretching;
   _wineFree   = !!day.wine_free;
+  _breakfastSkipped = !!day.breakfast_skipped;
+  _lunchSkipped = !!day.lunch_skipped;
+  _dinnerSkipped = !!day.dinner_skipped;
   _diet = {
     breakfast: day.breakfast||'', lunch: day.lunch||'', dinner: day.dinner||'', snack: day.snack||'',
     bOk:    day.bOk    ?? null, lOk:    day.lOk    ?? null, dOk:    day.dOk    ?? null, sOk: day.sOk ?? null,
@@ -66,6 +72,8 @@ export function loadWorkoutDate(y, m, d) {
   _renderCFStatusBtns();
   _renderStretchingToggle();
   _renderWineFreeToggle();
+  _renderMealSkippedToggles();
+  _initButtonEventListeners();
   _renderExerciseList();
   _renderMealFoodItems('breakfast');
   _renderMealFoodItems('lunch');
@@ -137,6 +145,17 @@ export function wtToggleStretching() {
 export function wtToggleWineFree() {
   _wineFree = !_wineFree;
   _renderWineFreeToggle();
+}
+
+export function wtToggleMealSkipped(meal) {
+  if (meal === 'breakfast') {
+    _breakfastSkipped = !_breakfastSkipped;
+  } else if (meal === 'lunch') {
+    _lunchSkipped = !_lunchSkipped;
+  } else if (meal === 'dinner') {
+    _dinnerSkipped = !_dinnerSkipped;
+  }
+  _renderMealSkippedToggles();
 }
 
 // ── 세트 조작 ─────────────────────────────────────────────────────
@@ -293,6 +312,9 @@ export async function saveWorkoutDay() {
     gym_health: _gymStatus === 'health',
     stretching: _stretching,
     wine_free:  _wineFree,
+    breakfast_skipped: _breakfastSkipped,
+    lunch_skipped: _lunchSkipped,
+    dinner_skipped: _dinnerSkipped,
     memo:       document.getElementById('wt-workout-memo').value.trim(),
     breakfast:  _diet.breakfast,
     lunch:      _diet.lunch,
@@ -350,6 +372,59 @@ function _renderStretchingToggle() {
 
 function _renderWineFreeToggle() {
   document.getElementById('wt-wine-free-toggle')?.classList.toggle('on', _wineFree);
+}
+
+function _renderMealSkippedToggles() {
+  document.getElementById('wt-breakfast-skipped')?.classList.toggle('active', _breakfastSkipped);
+  document.getElementById('wt-lunch-skipped')?.classList.toggle('active', _lunchSkipped);
+  document.getElementById('wt-dinner-skipped')?.classList.toggle('active', _dinnerSkipped);
+}
+
+function _initButtonEventListeners() {
+  // 헬스장 상태 버튼 이벤트 리스너
+  ['done','skip','health'].forEach(s => {
+    const btn = document.getElementById(`wt-gym-btn-${s}`);
+    if (btn) {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        wtSetGymStatus(s);
+      });
+    }
+  });
+
+  // 크로스핏 상태 버튼 이벤트 리스너
+  ['done','skip','health'].forEach(s => {
+    const btn = document.getElementById(`wt-cf-btn-${s}`);
+    if (btn) {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        wtSetCFStatus(s);
+      });
+    }
+  });
+
+  // 굶은 상태 토글 버튼 이벤트 리스너
+  const breakfastBtn = document.getElementById('wt-breakfast-skipped');
+  if (breakfastBtn) {
+    breakfastBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      wtToggleMealSkipped('breakfast');
+    });
+  }
+  const lunchBtn = document.getElementById('wt-lunch-skipped');
+  if (lunchBtn) {
+    lunchBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      wtToggleMealSkipped('lunch');
+    });
+  }
+  const dinnerBtn = document.getElementById('wt-dinner-skipped');
+  if (dinnerBtn) {
+    dinnerBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      wtToggleMealSkipped('dinner');
+    });
+  }
 }
 
 function _renderExerciseList() {
@@ -662,6 +737,9 @@ async function _autoSaveDiet() {
       gym_health: _gymStatus === 'health',
       stretching: _stretching,
       wine_free:  _wineFree,
+      breakfast_skipped: _breakfastSkipped,
+      lunch_skipped: _lunchSkipped,
+      dinner_skipped: _dinnerSkipped,
       memo:       document.getElementById('wt-workout-memo')?.value.trim() || '',
       breakfast:  _diet.breakfast,
       lunch:      _diet.lunch,

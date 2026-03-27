@@ -683,6 +683,8 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
 /* ── 식단 DB 검색 버튼 / 음식 아이템 칩 ── */
 .diet-db-btn{background:var(--surface3);border:1px solid var(--border);border-radius:6px;color:var(--muted2);font-size:11px;padding:3px 8px;cursor:pointer;margin-top:4px;-webkit-tap-highlight-color:transparent;transition:all .12s;font-family:'Noto Sans KR',sans-serif;}
 .diet-db-btn:active{background:var(--accent);color:#fff;border-color:var(--accent);}
+.diet-skip-btn{background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--muted2);cursor:pointer;transition:all .12s;-webkit-tap-highlight-color:transparent;}
+.diet-skip-btn.active{background:#7c2d12;border-color:#dc2626;color:#fca5a5;}
 .meal-food-list{display:flex;flex-direction:column;gap:4px;margin-top:6px;}
 .meal-food-chip{display:flex;align-items:center;gap:6px;background:var(--surface3);border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:11px;}
 .meal-food-chip-name{flex:1;color:var(--text);}
