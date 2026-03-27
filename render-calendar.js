@@ -12,13 +12,13 @@ import { MUSCLES }                                               from './config.
 let _currentYear = new Date().getFullYear();
 export const getCurrentYear = () => _currentYear;
 
-// ── 드래그 상태 (비활성화 - 모달 UI로 변경) ──────────────────────────────────────────────────
-// let _scheduleDragStart  = null;
-// let _scheduleDragEnd    = null;
-// let _scheduleDragYear   = null;
-// let _scheduleDragMonth  = null;
-// let _scheduleWasDragged = false;
-// let _scheduleDragOverlay = null;
+// ── 드래그 상태 ──────────────────────────────────────────────────────────────────────────
+let _scheduleDragStart  = null;
+let _scheduleDragEnd    = null;
+let _scheduleDragYear   = null;
+let _scheduleDragMonth  = null;
+let _scheduleWasDragged = false;
+let _scheduleDragOverlay = null;
 
 export function changeYear(delta) {
   _currentYear += delta;
@@ -303,6 +303,9 @@ function _scheduleRow(year, m, days) {
 
     const dn = document.createElement('div'); dn.className='day-num'; dn.textContent=d; cell.appendChild(dn);
 
+    // 드래그 이벤트 리스너 추가
+    cell.addEventListener('mousedown', (e) => _scheduleStartDrag(year, m, d, e));
+
     td.appendChild(cell); row.appendChild(td);
   }
   return row;
@@ -314,20 +317,20 @@ function _buildScheduleEventsOverlay(year, m, days, table) {
   const monthEnd   = dateKey(year, m, days);
   let allEvents  = getEvents().filter(ev => ev.start <= monthEnd && ev.end >= monthStart);
 
-  // 드래그 중이면 임시 이벤트 추가 (비활성화 - 모달 UI로 변경)
-  // if (_scheduleDragYear === year && _scheduleDragMonth === m && _scheduleDragStart && _scheduleDragEnd) {
-  //   const s = Math.min(_scheduleDragStart, _scheduleDragEnd);
-  //   const e = Math.max(_scheduleDragStart, _scheduleDragEnd);
-  //   const dragEvent = {
-  //     start: dateKey(year, m, s),
-  //     end: dateKey(year, m, e),
-  //     title: '',
-  //     color: 'rgba(245,158,11,0.3)',
-  //     isDrag: true,
-  //     borderColor: '#f59e0b'
-  //   };
-  //   allEvents = [...allEvents, dragEvent];
-  // }
+  // 드래그 중이면 임시 이벤트 추가
+  if (_scheduleDragYear === year && _scheduleDragMonth === m && _scheduleDragStart && _scheduleDragEnd) {
+    const s = Math.min(_scheduleDragStart, _scheduleDragEnd);
+    const e = Math.max(_scheduleDragStart, _scheduleDragEnd);
+    const dragEvent = {
+      start: dateKey(year, m, s),
+      end: dateKey(year, m, e),
+      title: '',
+      color: 'rgba(245,158,11,0.3)',
+      isDrag: true,
+      borderColor: '#f59e0b'
+    };
+    allEvents = [...allEvents, dragEvent];
+  }
 
   if (!allEvents.length) return null;
 
