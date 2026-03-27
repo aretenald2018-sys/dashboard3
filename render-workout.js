@@ -609,6 +609,7 @@ export function wtAddFoodItem(meal, item) {
   _recalcMealMacros(meal);
   _renderMealFoodItems(meal);
   _renderDietResults();
+  _autoSaveDiet();
 }
 
 export function wtRemoveFoodItem(meal, idx) {
@@ -628,6 +629,51 @@ export function wtRemoveFoodItem(meal, idx) {
   }
   _renderMealFoodItems(meal);
   _renderDietResults();
+  _autoSaveDiet();
+}
+
+// ── 식단 자동 저장 헬퍼 ────────────────────────────────────────────
+async function _autoSaveDiet() {
+  if (!_date) return;
+  const { y, m, d } = _date;
+
+  // 현재 입력값 반영
+  _diet.breakfast = document.getElementById('wt-meal-breakfast')?.value.trim() || _diet.breakfast;
+  _diet.lunch     = document.getElementById('wt-meal-lunch')?.value.trim() || _diet.lunch;
+  _diet.dinner    = document.getElementById('wt-meal-dinner')?.value.trim() || _diet.dinner;
+  _diet.snack     = document.getElementById('wt-meal-snack')?.value.trim() || _diet.snack;
+
+  const cleanEx = _exercises
+    .map(e => ({ ...e, sets: e.sets.filter(s => s.kg > 0 || s.reps > 0) }))
+    .filter(e => e.sets.length > 0 || e.note);
+
+  try {
+    await saveDay(dateKey(y, m, d), {
+      exercises:  cleanEx,
+      cf:         _cfStatus === 'done',
+      cf_skip:    _cfStatus === 'skip',
+      cf_health:  _cfStatus === 'health',
+      gym_skip:   _gymStatus === 'skip',
+      gym_health: _gymStatus === 'health',
+      stretching: _stretching,
+      wine_free:  _wineFree,
+      memo:       document.getElementById('wt-workout-memo')?.value.trim() || '',
+      breakfast:  _diet.breakfast,
+      lunch:      _diet.lunch,
+      dinner:     _diet.dinner,
+      snack:      _diet.snack,
+      bOk:_diet.bOk,   lOk:_diet.lOk,   dOk:_diet.dOk,   sOk:_diet.sOk,
+      bKcal:_diet.bKcal, lKcal:_diet.lKcal, dKcal:_diet.dKcal, sKcal:_diet.sKcal,
+      bReason:_diet.bReason, lReason:_diet.lReason, dReason:_diet.dReason, sReason:_diet.sReason,
+      bProtein:_diet.bProtein, bCarbs:_diet.bCarbs, bFat:_diet.bFat,
+      lProtein:_diet.lProtein, lCarbs:_diet.lCarbs, lFat:_diet.lFat,
+      dProtein:_diet.dProtein, dCarbs:_diet.dCarbs, dFat:_diet.dFat,
+      sProtein:_diet.sProtein, sCarbs:_diet.sCarbs, sFat:_diet.sFat,
+      bFoods:_diet.bFoods||[], lFoods:_diet.lFoods||[], dFoods:_diet.dFoods||[], sFoods:_diet.sFoods||[],
+    });
+  } catch(e) {
+    console.error('[render-workout] 자동 저장 실패:', e);
+  }
 }
 
 // ── 사진/텍스트 기반 영양정보 추가 ────────────────────────────────

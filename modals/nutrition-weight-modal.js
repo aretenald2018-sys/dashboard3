@@ -25,8 +25,8 @@ export const WEIGHT_MODAL_HTML = `
       </div>
 
       <div style="display:flex;gap:8px">
-        <button class="ex-picker-add" onclick="confirmNutritionItemWithWeight()" style="flex:1">추가</button>
-        <button style="flex:1;padding:8px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);cursor:pointer;font-size:13px" onclick="closeNutritionWeightModal()">취소</button>
+        <button class="ex-editor-save" onclick="confirmNutritionItemWithWeight()" style="flex:1">추가</button>
+        <button class="ex-editor-cancel" onclick="closeNutritionWeightModal()" style="flex:1">취소</button>
       </div>
     </div>
   </div>
@@ -111,22 +111,20 @@ export function confirmNutritionItemWithWeight() {
   const protein = Math.round((baseProtein * weight) / servingSize * 10) / 10;
   const fat = Math.round((baseFat * weight) / servingSize * 10) / 10;
 
-  // 음식 항목 생성
-  const foodListContainer = document.getElementById(`wt-foods-${mealId}`);
-  if (foodListContainer) {
-    const foodItem = document.createElement('div');
-    foodItem.className = 'meal-food-item';
-    foodItem.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:8px;background:var(--bg2);border-radius:4px;margin-bottom:4px;font-size:12px';
+  // 음식 항목 데이터 생성
+  const foodItem = {
+    id: item.id,
+    name: item.name,
+    grams: weight,
+    kcal: kcal,
+    carbs: carbs,
+    protein: protein,
+    fat: fat,
+  };
 
-    foodItem.innerHTML = `
-      <div style="flex:1">
-        <div style="font-weight:500;margin-bottom:2px">${item.name}</div>
-        <div style="color:var(--muted);font-size:11px">${weight}g | ${kcal}kcal | 탄${carbs}g 단${protein}g 지${fat}g</div>
-      </div>
-      <button onclick="this.parentElement.remove()" style="background:none;border:none;color:var(--muted);cursor:pointer;padding:4px;font-size:14px" title="삭제">✕</button>
-    `;
-
-    foodListContainer.appendChild(foodItem);
+  // render-workout.js의 wtAddFoodItem()을 호출하여 상태 관리 및 렌더링 처리
+  if (window.wtAddFoodItem) {
+    window.wtAddFoodItem(mealId, foodItem);
   }
 
   // 모달 닫기
