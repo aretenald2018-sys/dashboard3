@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(find . -name foods.csv -o -name *.csv)",
-      "mcp__Claude_Preview__preview_start"
+      "mcp__Claude_Preview__preview_start",
+      "Bash(wc -l C:\\\\Users\\\\USER\\\\Desktop\\\\dashboard3-main\\\\\\(backup\\\\\\)\\\\render-workout.js)"
     ]
   }
 }

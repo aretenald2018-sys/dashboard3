@@ -629,3 +629,18 @@ export function wtRemoveFoodItem(meal, idx) {
   _renderMealFoodItems(meal);
   _renderDietResults();
 }
+
+// ── 사진/텍스트 기반 영양정보 추가 ────────────────────────────────
+export function openNutritionPhotoUpload() {
+  // 영양정보 입력 모달을 사진 인식 탭으로 열기
+  // window 객체에 등록된 함수 사용
+  if (window.openNutritionItemEditor) {
+    window.openNutritionItemEditor(null);
+    // JS에서 직접 탭 전환
+    setTimeout(() => {
+      if (window.switchNutritionTab) {
+        window.switchNutritionTab('photo');
+      }
+    }, 100);
+  }
+}

@@ -13,7 +13,8 @@ import { loadAll, saveGoal, deleteGoal, getGoals,
          getTabOrder, saveTabOrder,
          getDietPlan, saveDietPlan, calcDietMetrics,
          saveBodyCheckin, deleteBodyCheckin, getBodyCheckins,
-         saveNutritionItem, deleteNutritionItem, getNutritionDB, searchNutritionDB } from './data.js';
+         saveNutritionItem, deleteNutritionItem, getNutritionDB, searchNutritionDB,
+         imageToBase64 } from './data.js';
 import { loadCSVDatabase, searchCSVFood } from './fatsecret-api.js';
 import { loadStocks }                             from './stocks.js';
 import { getDietRec, getWorkoutRec,
@@ -41,6 +42,7 @@ import {
   wtRunAnalyzeDiet,
   wtAddSet, wtRemoveSet, wtUpdateSet, wtToggleSetDone, wtUpdateSetType, wtRemoveExerciseEntry,
   wtAddFoodItem, wtRemoveFoodItem,
+  openNutritionPhotoUpload,
 } from './render-workout.js';
 import {
   renderCooking, openCookingModal, closeCookingModal,
@@ -1208,11 +1210,9 @@ window.openNutritionSearch      = openNutritionSearch;
 window.closeNutritionSearch     = closeNutritionSearch;
 window.renderNutritionSearchResults = renderNutritionSearchResults;
 window.selectNutritionItem      = selectNutritionItem;
-// 영양 DB 편집
-window.openNutritionItemEditor  = openNutritionItemEditor;
-window.closeNutritionItemModal  = closeNutritionItemModal;
-window.saveNutritionItemFromModal = saveNutritionItemFromModal;
-window.deleteNutritionItemFromModal = deleteNutritionItemFromModal;
+// 영양 DB 편집 (nutrition-item-modal.js에서 window에 이미 등록됨)
+// 추가로 필요한 식단 탭 함수
+window.openNutritionPhotoUpload = openNutritionPhotoUpload;
 // FatSecret 음식 검색
 window.openFatSecretSearch      = openFatSecretSearch;
 window.closeFatSecretSearch     = closeFatSecretSearch;

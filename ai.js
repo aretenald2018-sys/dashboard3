@@ -111,6 +111,118 @@ protein/carbs/fat 단위는 그램(g). 입력 없으면 ok:true, kcal:0, protein
   return JSON.parse(clean);
 }
 
+// ── 영양성분표 이미지 파싱 (Claude Vision API) ────────────────────
+// 사진에서 영양정보 추출 후 JSON으로 변환
+export async function parseNutritionFromImage(imageBase64, language = 'ko') {
+  const langMap = { ko:'한국어', ja:'일본어', en:'영어' };
+  const prompt = `다음 영양성분표 이미지에서 영양정보를 추출해주세요.
+
+반드시 아래 JSON 형식으로만 응답 (다른 텍스트 없이):
+{
+  "name": "음식명",
+  "unit": "100g",
+  "servingSize": 100,
+  "servingUnit": "g",
+  "nutrition": {
+    "kcal": 165,
+    "protein": 31,
+    "carbs": 0.4,
+    "fat": 3.6,
+    "fiber": 0,
+    "sugar": 0,
+    "sodium": 60
+  },
+  "brand": "브랜드명 (있으면)",
+  "language": "${language}",
+  "confidence": 0.95
+}
+
+주의사항:
+- 정확히 보이는 값만 추출 (확실하지 않으면 confidence 낮추기)
+- 없는 필드는 0 또는 null (fiber, sugar, sodium은 선택)
+- 단위는 g로 통일 (mg는 /1000)
+- 신뢰도: 0.0 ~ 1.0 (1.0 = 100% 확실)`;
+
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': CONFIG.ANTHROPIC_KEY,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true',
+    },
+    body: JSON.stringify({
+      model: CONFIG.CLAUDE_MODEL,
+      max_tokens: 500,
+      messages: [{
+        role: 'user',
+        content: [
+          { type: 'text', text: prompt },
+          { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: imageBase64 } }
+        ]
+      }],
+    }),
+  });
+  const data = await res.json();
+  if (data.error) throw new Error(data.error.message);
+  const text = data.content[0].text;
+  const clean = text.trim().replace(/```json|```/g, '');
+  return JSON.parse(clean);
+}
+
+// ── 영양성분 텍스트 파싱 ──────────────────────────────────────────
+// 복사한 텍스트에서 영양정보 추출
+export async function parseNutritionFromText(rawText) {
+  const prompt = `다음 텍스트는 영양성분표 또는 영양정보입니다. 이를 구조화된 JSON으로 변환해주세요.
+
+텍스트:
+${rawText}
+
+반드시 아래 JSON 형식으로만 응답 (다른 텍스트 없이):
+{
+  "name": "음식명",
+  "unit": "100g",
+  "servingSize": 100,
+  "servingUnit": "g",
+  "nutrition": {
+    "kcal": 165,
+    "protein": 31,
+    "carbs": 0.4,
+    "fat": 3.6,
+    "fiber": 0,
+    "sugar": 0,
+    "sodium": 60
+  },
+  "brand": "브랜드명 (있으면)",
+  "language": "ko|ja|en 중 하나",
+  "confidence": 0.95
+}
+
+주의사항:
+- 음식명이 없으면 null 처리
+- 정확히 파싱되는 것만 입력 (확실하지 않으면 confidence 낮추기)
+- 단위는 항상 g로 통일
+- 신뢰도: 0.0 ~ 1.0`;
+
+  const text = await callClaude(prompt, 400);
+  const clean = text.trim().replace(/```json|```/g, '');
+  return JSON.parse(clean);
+}
+
+// ── 다국어 감지 ──────────────────────────────────────────────────
+// 텍스트의 주요 언어 감지
+export async function detectLanguage(text) {
+  const prompt = `다음 텍스트의 주요 언어를 감지하고 JSON으로만 응답하세요.
+텍스트: ${text.substring(0, 200)}
+
+반드시 다음 형식으로만 (다른 텍스트 없이):
+{"language": "ko|ja|en|other", "confidence": 0.95}`;
+
+  const result = await callClaude(prompt, 100);
+  const clean = result.trim().replace(/```json|```/g, '');
+  return JSON.parse(clean);
+}
+
 // ── 목표 실현가능성 분석 ─────────────────────────────────────────
 // 반환: { feasibility(0-100), realisticDate(YYYY-MM-DD), summary }
 export async function analyzeGoalFeasibility(goal) {

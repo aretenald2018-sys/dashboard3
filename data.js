@@ -294,19 +294,75 @@ export async function deleteBodyCheckin(id) {
 export const getBodyCheckins = () => [..._bodyCheckins].sort((a,b) => (a.date||'').localeCompare(b.date||''));
 
 // ── 나만의 영양 DB ────────────────────────────────────────────────
+function _generateId() { return Date.now().toString(36) + Math.random().toString(36).substr(2); }
+
 export async function saveNutritionItem(item) {
   try {
+    if (!item.id) item.id = _generateId();
+    item.createdAt = item.createdAt || new Date().toISOString();
+    item.updatedAt = new Date().toISOString();
     await setDoc(doc(db, 'nutrition_db', item.id), item);
     const idx = _nutritionDB.findIndex(n => n.id === item.id);
     if (idx >= 0) _nutritionDB[idx] = item; else _nutritionDB.push(item);
-  } catch(e) { console.error('[data] saveNutritionItem:', e); }
+    return item;
+  } catch(e) { console.error('[data] saveNutritionItem:', e); throw e; }
 }
+
 export async function deleteNutritionItem(id) {
   try { await deleteDoc(doc(db, 'nutrition_db', id)); _nutritionDB = _nutritionDB.filter(n => n.id !== id); }
   catch(e) { console.error('[data] deleteNutritionItem:', e); }
 }
+
 export const getNutritionDB       = () => [..._nutritionDB].sort((a,b) => (a.name||'').localeCompare(b.name||''));
-export const searchNutritionDB    = (q) => _nutritionDB.filter(n => n.name?.includes(q));
+export const searchNutritionDB    = (q) => _nutritionDB.filter(n => n.name?.toLowerCase().includes((q||'').toLowerCase()));
+
+// OCR/파싱 결과를 정규화하여 저장
+export async function saveNutritionItemFromOCR(parsedData, source = 'ocr') {
+  const item = {
+    id: _generateId(),
+    name: parsedData.name || '',
+    source: source, // 'ocr' | 'manual' | 'fatsecret'
+    language: parsedData.language || 'ko',
+    unit: parsedData.unit || '100g',
+    servingSize: parseInt(parsedData.servingSize || 100),
+    servingUnit: parsedData.servingUnit || 'g',
+
+    nutrition: {
+      kcal: parseFloat(parsedData.nutrition?.kcal || 0),
+      protein: parseFloat(parsedData.nutrition?.protein || 0),
+      carbs: parseFloat(parsedData.nutrition?.carbs || 0),
+      fat: parseFloat(parsedData.nutrition?.fat || 0),
+      fiber: parseFloat(parsedData.nutrition?.fiber || 0),
+      sugar: parseFloat(parsedData.nutrition?.sugar || 0),
+      sodium: parseFloat(parsedData.nutrition?.sodium || 0),
+    },
+
+    photoUrl: parsedData.photoUrl || null,
+    rawText: parsedData.rawText || null,
+    confidence: parseFloat(parsedData.confidence || 0.8),
+    brand: parsedData.brand || null,
+    notes: parsedData.notes || '',
+
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+
+  return await saveNutritionItem(item);
+}
+
+// 텍스트 이미지 base64로 변환
+export function imageToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result;
+      const base64 = result.split(',')[1]; // data:image/jpeg;base64, 제거
+      resolve(base64);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
 
 // ── 다이어트 플랜 (Firebase settings) ────────────────────────────
 // 활동계수 변경 시 847 상수도 자동 재계산: 7700 / 7 / activityFactor
