@@ -438,6 +438,14 @@ export async function saveNutritionItemFromModal() {
     await saveNutritionItem(item);
     alert('저장되었습니다!');
     closeNutritionItemModal();
+
+    // 저장 후 검색 결과 업데이트 (새로운 데이터 반영)
+    if (window.renderNutritionSearchResults) {
+      setTimeout(() => {
+        window.renderNutritionSearchResults();
+        if (window._renderNutritionDBList) window._renderNutritionDBList();
+      }, 50);
+    }
   } catch (e) {
     alert('저장 실패: ' + e.message);
   }
