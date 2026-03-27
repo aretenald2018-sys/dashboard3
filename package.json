@@ -1,0 +1,16 @@
+{
+  "name": "dashboard",
+  "version": "1.0.0",
+  "description": "Personal Dashboard with Fitness, Diet, Wine Tracking",
+  "main": "app.js",
+  "scripts": {
+    "start": "python -m http.server 5500",
+    "dev": "python -m http.server 5500",
+    "build": "echo 'No build needed for static site'"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "engines": {
+    "node": "24.x"
+  }
+}
