@@ -3,7 +3,8 @@
     "allow": [
       "Bash(find . -name foods.csv -o -name *.csv)",
       "mcp__Claude_Preview__preview_start",
-      "Bash(wc -l C:\\\\Users\\\\USER\\\\Desktop\\\\dashboard3-main\\\\\\(backup\\\\\\)\\\\render-workout.js)"
+      "Bash(wc -l C:\\\\Users\\\\USER\\\\Desktop\\\\dashboard3-main\\\\\\(backup\\\\\\)\\\\render-workout.js)",
+      "Bash(wc -l \"C:\\\\Users\\\\USER\\\\Desktop\\\\dashboard3-main\\(backup\\)\\\\modals\\\\nutrition-item-modal.js\")"
     ]
   }
 }

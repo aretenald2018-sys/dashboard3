@@ -15,9 +15,9 @@ export const MODAL_HTML = `
 
     <!-- 탭: 수기입력 / 사진인식 / 텍스트파싱 -->
     <div class="ni-tabs">
-      <button class="ni-tab-btn active" id="ni-tab-manual" onclick="switchNutritionTab('manual')">✏️ 수기입력</button>
-      <button class="ni-tab-btn" id="ni-tab-photo" onclick="switchNutritionTab('photo')">📷 사진인식</button>
-      <button class="ni-tab-btn" id="ni-tab-text" onclick="switchNutritionTab('text')">📝 텍스트파싱</button>
+      <button class="ni-tab-btn active" id="ni-tab-manual" data-tab="manual">✏️ 수기입력</button>
+      <button class="ni-tab-btn" id="ni-tab-photo" data-tab="photo">📷 사진인식</button>
+      <button class="ni-tab-btn" id="ni-tab-text" data-tab="text">📝 텍스트파싱</button>
     </div>
 
     <!-- ═══ TAB 1: 수기 입력 ═══ -->
@@ -120,7 +120,7 @@ export const MODAL_HTML = `
 
 .ni-tab-btn {
   flex: 1;
-  padding: 12px 8px;
+  padding: 14px 8px;
   border: none;
   background: transparent;
   color: var(--muted);
@@ -132,6 +132,19 @@ export const MODAL_HTML = `
   overflow: hidden;
   text-overflow: ellipsis;
   min-width: 0;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.ni-tab-btn:active {
+  opacity: 0.7;
+}
+
+.ni-tab-btn.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
 }
 
 @media (max-width: 480px) {
@@ -141,14 +154,13 @@ export const MODAL_HTML = `
   }
 
   .ni-tab-btn {
-    padding: 10px 4px;
+    padding: 12px 4px;
     font-size: 11px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
-}
-
-.ni-tab-btn.active {
-  color: var(--text);
-  border-bottom-color: var(--accent);
 }
 
 .ni-tab-content {
@@ -210,6 +222,20 @@ export async function openNutritionItemEditor(id) {
   document.querySelectorAll('.ni-tab-content').forEach(c => c.classList.remove('active'));
   document.getElementById('ni-tab-content-manual').classList.add('active');
 
+  // 탭 버튼 클릭 이벤트 리스너 (event delegation)
+  const tabsContainer = document.querySelector('.ni-tabs');
+  if (tabsContainer && !tabsContainer._niTabsInitialized) {
+    tabsContainer._niTabsInitialized = true;
+    tabsContainer.addEventListener('click', (e) => {
+      const btn = e.target.closest('.ni-tab-btn');
+      if (btn) {
+        e.stopPropagation();
+        const tab = btn.dataset.tab;
+        if (tab) switchNutritionTab(tab);
+      }
+    }, false);
+  }
+
   if (id) {
     // 기존 아이템 수정
     const { getNutritionDB } = await import('../data.js');
@@ -243,11 +269,13 @@ export function switchNutritionTab(tab) {
 
   // 버튼 활성화
   document.querySelectorAll('.ni-tab-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById(`ni-tab-${tab}`).classList.add('active');
+  const tabBtn = document.getElementById(`ni-tab-${tab}`);
+  if (tabBtn) tabBtn.classList.add('active');
 
   // 콘텐츠 표시
   document.querySelectorAll('.ni-tab-content').forEach(c => c.classList.remove('active'));
-  document.getElementById(`ni-tab-content-${tab}`).classList.add('active');
+  const tabContent = document.getElementById(`ni-tab-content-${tab}`);
+  if (tabContent) tabContent.classList.add('active');
 }
 
 // ═════════════════════════════════════════════════════════════
