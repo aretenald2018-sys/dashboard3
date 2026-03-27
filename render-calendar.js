@@ -368,8 +368,8 @@ function _buildScheduleEventsOverlay(year, m, days, table) {
     bar.className = 'schedule-event-bar-overlay';
 
     const styles = [
-      `left:calc(${pctL}% + 38px)`,  // 38px = row-label width
-      `width:calc(${pctW}% - 40px)`,
+      `left:${pctL}%`,
+      `width:${pctW}%`,
       `top:${track * (BAR_H + BAR_GAP)}px`,
       `height:${BAR_H}px`,
       `background:${ev.color || '#f59e0b'}`,
