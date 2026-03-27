@@ -920,9 +920,14 @@ function renderNutritionSearchResults() {
 }
 
 // 즐겨찾기에서만 제거 (DB는 건드리지 않음)
-function removeFromFavorites(itemId) {
-  renderNutritionSearchResults();
-  console.log('[영양검색] 즐겨찾기에서 제거:', itemId);
+async function removeFromFavorites(itemId) {
+  try {
+    await deleteNutritionItem(itemId);
+    renderNutritionSearchResults();
+    console.log('[영양검색] 즐겨찾기에서 제거:', itemId);
+  } catch (e) {
+    console.error('[영양검색] 삭제 실패:', e);
+  }
 }
 
 function selectNutritionItem(itemId) {

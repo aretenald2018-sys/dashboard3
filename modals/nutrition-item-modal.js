@@ -414,7 +414,7 @@ export async function saveNutritionItemFromModal() {
     id: _niEditingId,
     name: name,
     unit: document.getElementById('ni-unit').value.trim() || '100g',
-    servingSize: parseInt(document.getElementById('ni-unit').value.match(/\\d+/)?.[0] || 100),
+    servingSize: parseFloat(document.getElementById('ni-unit').value.match(/[\d.]+/)?.[0] || 100),
     servingUnit: 'g',
     nutrition: {
       kcal: parseFloat(document.getElementById('ni-kcal').value || 0),

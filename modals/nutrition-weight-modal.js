@@ -40,7 +40,8 @@ window._nutritionWeightItem = null;
 export function openNutritionWeightModal(item) {
   window._nutritionWeightItem = item;
 
-  // 항목 정보 표시
+  // 항목 정보 표시 (원래 저장된 단위 기준)
+  const servingSize = item.servingSize || 100;
   const kcal = item.nutrition?.kcal || item.kcal || 0;
   const carbs = item.nutrition?.carbs || item.carbs || 0;
   const protein = item.nutrition?.protein || item.protein || 0;
@@ -48,7 +49,7 @@ export function openNutritionWeightModal(item) {
 
   document.getElementById('weight-item-name').textContent = item.name;
   document.getElementById('weight-item-nutrition').textContent =
-    `100g 기준: ${kcal}kcal | 탄${carbs}g 단${protein}g 지${fat}g`;
+    `${servingSize}g 기준: ${kcal}kcal | 탄${carbs}g 단${protein}g 지${fat}g`;
 
   // 중량 입력 초기화
   document.getElementById('nutrition-weight-input').value = '100';
@@ -66,17 +67,18 @@ export function updateNutritionWeightPreview() {
 
   const weight = parseFloat(document.getElementById('nutrition-weight-input').value) || 100;
   const item = window._nutritionWeightItem;
+  const servingSize = item.servingSize || 100;
 
   const baseKcal = item.nutrition?.kcal || item.kcal || 0;
   const baseCarbs = item.nutrition?.carbs || item.carbs || 0;
   const baseProtein = item.nutrition?.protein || item.protein || 0;
   const baseFat = item.nutrition?.fat || item.fat || 0;
 
-  // 비례 계산
-  const calcKcal = Math.round((baseKcal * weight) / 100);
-  const calcCarbs = Math.round((baseCarbs * weight) / 100 * 10) / 10;
-  const calcProtein = Math.round((baseProtein * weight) / 100 * 10) / 10;
-  const calcFat = Math.round((baseFat * weight) / 100 * 10) / 10;
+  // servingSize 기준으로 사용자 입력 중량에 맞춰 비례 계산
+  const calcKcal = Math.round((baseKcal * weight) / servingSize);
+  const calcCarbs = Math.round((baseCarbs * weight) / servingSize * 10) / 10;
+  const calcProtein = Math.round((baseProtein * weight) / servingSize * 10) / 10;
+  const calcFat = Math.round((baseFat * weight) / servingSize * 10) / 10;
 
   document.getElementById('weight-calc-kcal').textContent = calcKcal;
   document.getElementById('weight-calc-carbs').textContent = calcCarbs;
@@ -96,17 +98,18 @@ export function confirmNutritionItemWithWeight() {
   const weight = parseFloat(document.getElementById('nutrition-weight-input').value) || 100;
   const item = window._nutritionWeightItem;
   const mealId = window._nutritionSearchMeal;
+  const servingSize = item.servingSize || 100;
 
   const baseKcal = item.nutrition?.kcal || item.kcal || 0;
   const baseCarbs = item.nutrition?.carbs || item.carbs || 0;
   const baseProtein = item.nutrition?.protein || item.protein || 0;
   const baseFat = item.nutrition?.fat || item.fat || 0;
 
-  // 비례 계산
-  const kcal = Math.round((baseKcal * weight) / 100);
-  const carbs = Math.round((baseCarbs * weight) / 100 * 10) / 10;
-  const protein = Math.round((baseProtein * weight) / 100 * 10) / 10;
-  const fat = Math.round((baseFat * weight) / 100 * 10) / 10;
+  // servingSize 기준으로 사용자 입력 중량에 맞춰 비례 계산
+  const kcal = Math.round((baseKcal * weight) / servingSize);
+  const carbs = Math.round((baseCarbs * weight) / servingSize * 10) / 10;
+  const protein = Math.round((baseProtein * weight) / servingSize * 10) / 10;
+  const fat = Math.round((baseFat * weight) / servingSize * 10) / 10;
 
   // 음식 항목 생성
   const foodListContainer = document.getElementById(`wt-foods-${mealId}`);
