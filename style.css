@@ -135,13 +135,15 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
 .cell.cf-on{background:var(--cf-dim);border-color:var(--cf);}
 .cell.diet-ok{background:var(--diet-ok-dim);border-color:var(--diet-ok);}
 .cell.diet-bad{background:var(--diet-bad-dim);border-color:var(--diet-bad);}
+.cell.skip-disabled{background:#1a1a1a;border-color:#404040;}
 .cell.today-cell{border-style:dashed;border-color:var(--accent);border-width:1.5px;}
 .cell.future{opacity:.2;pointer-events:none;}
 .cell-icon{font-size:14px;display:none;}
-.cell.gym-on .cell-icon,.cell.cf-on .cell-icon,.cell.diet-ok .cell-icon,.cell.diet-bad .cell-icon,.cell.skipped .cell-icon,.cell.health-issue .cell-icon,.cell.diet-skipped .cell-icon{display:block;}
+.cell.gym-on .cell-icon,.cell.cf-on .cell-icon,.cell.diet-ok .cell-icon,.cell.diet-bad .cell-icon,.cell.skip-disabled .cell-icon,.cell.skipped .cell-icon,.cell.health-issue .cell-icon,.cell.diet-skipped .cell-icon{display:block;}
 .day-num{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);position:absolute;top:2px;left:3px;line-height:1;}
 .cell.gym-on .day-num{color:var(--gym);opacity:.7;}.cell.cf-on .day-num{color:var(--cf);opacity:.7;}
 .cell.diet-ok .day-num{color:var(--diet-ok);opacity:.7;}.cell.diet-bad .day-num{color:var(--diet-bad);opacity:.7;}
+.cell.skip-disabled .day-num{color:#666;opacity:.7;}.cell.skip-disabled .cell-icon{color:#000;}
 .muscle-dots{position:absolute;bottom:2px;right:2px;display:flex;gap:1px;flex-wrap:wrap;max-width:16px;justify-content:flex-end;}
 .muscle-dot{width:4px;height:4px;border-radius:50%;}
 

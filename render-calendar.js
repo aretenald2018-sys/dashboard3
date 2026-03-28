@@ -111,7 +111,7 @@ function _gymRow(year, m, days) {
       });
       cell.appendChild(dots);
     } else if (gymSkip) {
-      cell.classList.add('diet-bad');
+      cell.classList.add('skip-disabled');
       const ic = document.createElement('span'); ic.className='cell-icon'; ic.textContent='❌'; cell.appendChild(ic);
     }
     td.appendChild(cell); row.appendChild(td);
@@ -137,7 +137,7 @@ function _cfRow(year, m, days) {
       cell.classList.add('cf-on');
       const ic = document.createElement('span'); ic.className='cell-icon'; ic.textContent='🔥'; cell.appendChild(ic);
     } else if (cfSkip) {
-      cell.classList.add('diet-bad');
+      cell.classList.add('skip-disabled');
       const ic = document.createElement('span'); ic.className='cell-icon'; ic.textContent='❌'; cell.appendChild(ic);
     }
     td.appendChild(cell); row.appendChild(td);
