@@ -227,7 +227,7 @@
           <div class="diet-meal-label">🌅 아침</div>
           <input class="diet-meal-input" id="wt-meal-breakfast" placeholder="메모 (선택)">
           <button class="diet-db-btn" onclick="openNutritionSearch('breakfast')" title="음식 검색">🔍</button>
-          <button class="diet-skip-btn" id="wt-breakfast-skipped" title="굶었음" style="font-size:14px;padding:6px 8px;border-radius:4px;border:1px solid var(--border);background:var(--surface2);cursor:pointer">🚫</button>
+          <button class="diet-skip-btn" id="wt-breakfast-skipped" title="아침 굶었음" onclick="wtToggleMealSkipped('breakfast')" style="font-size:14px;padding:6px 8px;border-radius:4px;border:1px solid var(--border);background:var(--surface2);cursor:pointer">🚫</button>
           <div class="meal-food-list" id="wt-foods-breakfast"></div>
           <div class="diet-result" id="wt-result-breakfast"><span class="diet-badge pending">미분석</span></div>
         </div>
@@ -235,7 +235,7 @@
           <div class="diet-meal-label">☀️ 점심</div>
           <input class="diet-meal-input" id="wt-meal-lunch" placeholder="메모 (선택)">
           <button class="diet-db-btn" onclick="openNutritionSearch('lunch')" title="음식 검색">🔍</button>
-          <button class="diet-skip-btn" id="wt-lunch-skipped" title="굶었음" style="font-size:14px;padding:6px 8px;border-radius:4px;border:1px solid var(--border);background:var(--surface2);cursor:pointer">🚫</button>
+          <button class="diet-skip-btn" id="wt-lunch-skipped" title="점심 굶었음" onclick="wtToggleMealSkipped('lunch')" style="font-size:14px;padding:6px 8px;border-radius:4px;border:1px solid var(--border);background:var(--surface2);cursor:pointer">🚫</button>
           <div class="meal-food-list" id="wt-foods-lunch"></div>
           <div class="diet-result" id="wt-result-lunch"><span class="diet-badge pending">미분석</span></div>
         </div>
@@ -243,7 +243,7 @@
           <div class="diet-meal-label">🌙 저녁</div>
           <input class="diet-meal-input" id="wt-meal-dinner" placeholder="메모 (선택)">
           <button class="diet-db-btn" onclick="openNutritionSearch('dinner')" title="음식 검색">🔍</button>
-          <button class="diet-skip-btn" id="wt-dinner-skipped" title="굶었음" style="font-size:14px;padding:6px 8px;border-radius:4px;border:1px solid var(--border);background:var(--surface2);cursor:pointer">🚫</button>
+          <button class="diet-skip-btn" id="wt-dinner-skipped" title="저녁 굶었음" onclick="wtToggleMealSkipped('dinner')" style="font-size:14px;padding:6px 8px;border-radius:4px;border:1px solid var(--border);background:var(--surface2);cursor:pointer">🚫</button>
           <div class="meal-food-list" id="wt-foods-dinner"></div>
           <div class="diet-result" id="wt-result-dinner"><span class="diet-badge pending">미분석</span></div>
         </div>

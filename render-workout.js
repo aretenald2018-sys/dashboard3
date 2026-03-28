@@ -125,16 +125,18 @@ export function goToTodayWorkout() {
 }
 
 // ── 상태 조작 ─────────────────────────────────────────────────────
-export function wtSetGymStatus(status) {
+export async function wtSetGymStatus(status) {
   _gymStatus = status;
   _renderGymStatusBtns();
   const list = document.getElementById('wt-exercise-list');
   if (list) list.style.opacity = (status === 'done' || status === 'none') ? '1' : '0.4';
+  await saveWorkoutDay();
 }
 
-export function wtSetCFStatus(status) {
+export async function wtSetCFStatus(status) {
   _cfStatus = status;
   _renderCFStatusBtns();
+  await saveWorkoutDay();
 }
 
 export function wtToggleStretching() {
@@ -147,7 +149,7 @@ export function wtToggleWineFree() {
   _renderWineFreeToggle();
 }
 
-export function wtToggleMealSkipped(meal) {
+export async function wtToggleMealSkipped(meal) {
   if (meal === 'breakfast') {
     _breakfastSkipped = !_breakfastSkipped;
   } else if (meal === 'lunch') {
@@ -156,6 +158,7 @@ export function wtToggleMealSkipped(meal) {
     _dinnerSkipped = !_dinnerSkipped;
   }
   _renderMealSkippedToggles();
+  await saveWorkoutDay();
 }
 
 // ── 세트 조작 ─────────────────────────────────────────────────────
