@@ -354,13 +354,11 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
 .set-done-btn.done{background:var(--diet-ok-dim);border-color:var(--streak);color:var(--streak);}
 .set-done-btn:active{transform:scale(.9);}
 
-/* ── 달력 건강이슈 / 안함 ── */
+/* ── 달력 건강이슈 / 굶었음 (모두 초록색) ── */
 .cell.health-issue{background:#0a2010;border-color:#16a34a;}
 .cell.health-issue .day-num{color:#22c55e;opacity:.7;}
-.cell.skipped{background:#1a1a1a;border-color:#374151;}
-.cell.skipped .day-num{color:#6b7280;opacity:.7;}
-.cell.diet-skipped{background:rgba(245,158,11,.08);border-color:var(--accent);}
-.cell.diet-skipped .day-num{color:var(--accent);opacity:.7;}
+.cell.diet-skipped{background:#0a2010;border-color:#16a34a;}
+.cell.diet-skipped .day-num{color:#22c55e;opacity:.7;}
 .cell-icon.health-cross{color:#22c55e;font-size:14px;}
 .legend-health{width:10px;height:10px;border-radius:2px;background:#0a2010;border:1px solid #16a34a;flex-shrink:0;}
 

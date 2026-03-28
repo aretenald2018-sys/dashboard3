@@ -99,13 +99,10 @@ function _gymRow(year, m, days) {
 
     if (gymHealth) {
       cell.classList.add('health-issue');
-      const ic = document.createElement('span'); ic.className='cell-icon health-cross'; ic.textContent='🏥'; cell.appendChild(ic);
-    } else if (gymSkip) {
-      cell.classList.add('skipped');
-      const ic = document.createElement('span'); ic.className='cell-icon'; ic.textContent='🚫'; cell.appendChild(ic);
+      const ic = document.createElement('span'); ic.className='cell-icon health-cross'; ic.textContent='✚'; cell.appendChild(ic);
     } else if (muscles.length) {
       cell.classList.add('gym-on');
-      const ic = document.createElement('span'); ic.className='cell-icon'; ic.textContent='🏋️'; cell.appendChild(ic);
+      const ic = document.createElement('span'); ic.className='cell-icon'; ic.textContent='🔥'; cell.appendChild(ic);
       const dots = document.createElement('div'); dots.className='muscle-dots';
       muscles.slice(0,4).forEach(mid => {
         const mc  = MUSCLES.find(x => x.id===mid);
@@ -113,6 +110,9 @@ function _gymRow(year, m, days) {
         dot.style.background = mc?.color || '#888'; dots.appendChild(dot);
       });
       cell.appendChild(dots);
+    } else if (gymSkip) {
+      cell.classList.add('diet-bad');
+      const ic = document.createElement('span'); ic.className='cell-icon'; ic.textContent='❌'; cell.appendChild(ic);
     }
     td.appendChild(cell); row.appendChild(td);
   }
@@ -132,13 +132,13 @@ function _cfRow(year, m, days) {
 
     if (cfHealth) {
       cell.classList.add('health-issue');
-      const ic = document.createElement('span'); ic.className='cell-icon health-cross'; ic.textContent='🏥'; cell.appendChild(ic);
-    } else if (cfSkip) {
-      cell.classList.add('skipped');
-      const ic = document.createElement('span'); ic.className='cell-icon'; ic.textContent='🚫'; cell.appendChild(ic);
+      const ic = document.createElement('span'); ic.className='cell-icon health-cross'; ic.textContent='✚'; cell.appendChild(ic);
     } else if (getCF(year, m, d)) {
       cell.classList.add('cf-on');
       const ic = document.createElement('span'); ic.className='cell-icon'; ic.textContent='🔥'; cell.appendChild(ic);
+    } else if (cfSkip) {
+      cell.classList.add('diet-bad');
+      const ic = document.createElement('span'); ic.className='cell-icon'; ic.textContent='❌'; cell.appendChild(ic);
     }
     td.appendChild(cell); row.appendChild(td);
   }
@@ -169,18 +169,18 @@ function _dietRow(year, m, days) {
     const dSkipped = getDinnerSkipped(year, m, d);
     const anySkipped = bSkipped || lSkipped || dSkipped;
 
-    // 표시 로직 (우선순위: 굶었음 -> 성공 -> 실패)
-    if (anySkipped) {
-      cell.classList.add('diet-skipped');
-      const ic = document.createElement('span');
-      ic.className='cell-icon';
-      ic.textContent='🚫';
-      cell.appendChild(ic);
-    } else if (dok === true) {
+    // 표시 로직 (우선순위: 성공 -> 굶었음 -> 실패)
+    if (dok === true) {
       cell.classList.add('diet-ok');
       const ic = document.createElement('span');
       ic.className='cell-icon';
-      ic.textContent='✅';
+      ic.textContent='🔥';
+      cell.appendChild(ic);
+    } else if (anySkipped) {
+      cell.classList.add('diet-skipped');
+      const ic = document.createElement('span');
+      ic.className='cell-icon';
+      ic.textContent='✚';
       cell.appendChild(ic);
     } else if (dok === false) {
       cell.classList.add('diet-bad');
