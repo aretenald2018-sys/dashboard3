@@ -50,7 +50,8 @@
       "Bash(node --check app.js)",
       "WebFetch(domain:aretenald2018-sys.github.io)",
       "Bash(tail -20 \"C:\\\\Users\\\\USER\\\\Desktop\\\\dashboard3-main\\(backup\\) - 복사본\\\\index.html\")",
-      "Bash(curl -I https://aretenald2018-sys.github.io/dashboard3/sw.js)"
+      "Bash(curl -I https://aretenald2018-sys.github.io/dashboard3/sw.js)",
+      "Bash(ls -lh icon-*.png manifest.json)"
     ]
   }
 }

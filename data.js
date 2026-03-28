@@ -13,9 +13,16 @@ import { INITIAL_WINES }  from './wine-data.js';
 const app = initializeApp(CONFIG.FIREBASE);
 const db  = getFirestore(app);
 
+// Firebase IndexedDB 오프라인 캐싱 설정
 enableIndexedDbPersistence(db).catch(err => {
-  if (err.code === 'failed-precondition') console.warn('[data] 멀티탭 환경 — 오프라인 캐시 비활성');
-  else if (err.code === 'unimplemented')  console.warn('[data] 브라우저가 오프라인 캐시 미지원');
+  if (err.code === 'failed-precondition') {
+    // 멀티탭 환경: 이전 탭을 닫으면 해결됨
+    console.warn('[data] 멀티탭 환경 감지 — 다른 탭의 대시보드를 닫아주세요');
+  } else if (err.code === 'unimplemented') {
+    console.warn('[data] 브라우저가 오프라인 캐시 미지원 — 온라인 모드로 작동합니다');
+  } else {
+    console.warn('[data] IndexedDB 초기화 실패:', err.code);
+  }
 });
 
 let _cache        = {};
