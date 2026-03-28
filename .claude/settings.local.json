@@ -26,7 +26,30 @@
       "Bash(cd /c/Users/USER/Desktop/dashboard3-main\\\\\\(backup\\\\\\))",
       "Bash(grep -n \"openCalEventModal\" *.js)",
       "WebFetch(domain:github.com)",
-      "Bash(wc -l \"C:\\\\Users\\\\USER\\\\Desktop\\\\dashboard3-main\\(backup\\)\\\\render-workout.js\")"
+      "Bash(wc -l \"C:\\\\Users\\\\USER\\\\Desktop\\\\dashboard3-main\\(backup\\)\\\\render-workout.js\")",
+      "Bash(wc -l \"/Users/USER/Desktop/dashboard3-main\\(backup\\) - 복사본/render-workout.js\")",
+      "Bash(git checkout:*)",
+      "Bash(git push:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"fix: 운동 종목 에디터/피커 모달 함수명 수정:*)",
+      "Bash(git merge:*)",
+      "Bash(find \"C:\\\\Users\\\\USER\\\\Desktop\\\\dashboard3-main\\(backup\\) - 복사본\\\\modals\" -name \"*.js\")",
+      "Bash(wc -l \"C:\\\\Users\\\\USER\\\\Desktop\\\\dashboard3-main\\(backup\\) - 복사본\"/*.js)",
+      "Bash(find . -name \"*.js\" -exec wc -l {} +)",
+      "Bash(wc -l \"C:\\\\Users\\\\USER\\\\Desktop\\\\dashboard3-main\\(backup\\) - 복사본\\\\data.js\")",
+      "Bash(wc -l \"C:\\\\Users\\\\USER\\\\Desktop\\\\dashboard3-main\\(backup\\) - 복사본\\\\render-calendar.js\")",
+      "Bash(find \"C:\\\\Users\\\\USER\\\\Desktop\\\\dashboard3-main\\(backup\\) - 복사본\" -name \"*.html\" -type f)",
+      "Bash(node -c data.js)",
+      "Bash(node -e \":*)",
+      "Bash(node --input-type=module -e \":*)",
+      "Bash(curl -s http://localhost:5500/modals/nutrition-weight-modal.js)",
+      "Bash(curl -s http://localhost:5500/data.js)",
+      "Bash(wc -l \"C:\\\\Users\\\\USER\\\\Desktop\\\\dashboard3-main\\(backup\\) - 복사본\\\\app.js\")",
+      "Bash(tail -5 \"C:\\\\Users\\\\USER\\\\Desktop\\\\dashboard3-main\\(backup\\) - 복사본\\\\app.js\")",
+      "Bash(tail -10 \"C:\\\\Users\\\\USER\\\\Desktop\\\\dashboard3-main\\(backup\\) - 복사본\\\\app.js\")",
+      "Bash(node --check app.js)",
+      "WebFetch(domain:aretenald2018-sys.github.io)",
+      "Bash(tail -20 \"C:\\\\Users\\\\USER\\\\Desktop\\\\dashboard3-main\\(backup\\) - 복사본\\\\index.html\")"
     ]
   }
 }
