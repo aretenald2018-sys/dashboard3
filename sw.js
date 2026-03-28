@@ -4,28 +4,12 @@
 
 const CACHE_VERSION = 'life-streak-v1';
 const CACHE_URLS = [
-  '/',
-  '/dashboard3/',
   '/dashboard3/index.html',
+  '/dashboard3/manifest.json',
   '/dashboard3/app.js',
   '/dashboard3/data.js',
   '/dashboard3/config.js',
-  '/dashboard3/style.css',
-  '/dashboard3/render-calendar.js',
-  '/dashboard3/render-workout.js',
-  '/dashboard3/render-home.js',
-  '/dashboard3/render-stats.js',
-  '/dashboard3/render-cooking.js',
-  '/dashboard3/render-loa.js',
-  '/dashboard3/render-monthly-calendar.js',
-  '/dashboard3/render-wine.js',
-  '/dashboard3/render-stats.js',
-  '/dashboard3/ai.js',
-  '/dashboard3/sheet.js',
-  '/dashboard3/fatsecret-api.js',
-  '/dashboard3/wine-data.js',
-  '/dashboard3/stocks.js',
-  '/dashboard3/manifest.json'
+  '/dashboard3/style.css'
 ];
 
 // 설치 이벤트 - 캐시 생성

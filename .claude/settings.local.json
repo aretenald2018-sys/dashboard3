@@ -49,7 +49,8 @@
       "Bash(tail -10 \"C:\\\\Users\\\\USER\\\\Desktop\\\\dashboard3-main\\(backup\\) - 복사본\\\\app.js\")",
       "Bash(node --check app.js)",
       "WebFetch(domain:aretenald2018-sys.github.io)",
-      "Bash(tail -20 \"C:\\\\Users\\\\USER\\\\Desktop\\\\dashboard3-main\\(backup\\) - 복사본\\\\index.html\")"
+      "Bash(tail -20 \"C:\\\\Users\\\\USER\\\\Desktop\\\\dashboard3-main\\(backup\\) - 복사본\\\\index.html\")",
+      "Bash(curl -I https://aretenald2018-sys.github.io/dashboard3/sw.js)"
     ]
   }
 }
