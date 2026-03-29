@@ -542,12 +542,8 @@ if ('serviceWorker' in navigator) {
 // 설치 프롬프트 처리 (PWA 설치 버튼)
 let deferredPrompt;
 window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
   deferredPrompt = e;
   console.log('[PWA] 설치 준비 완료');
-
-  // "앱 설치" 버튼을 UI에 표시하고 싶다면 여기서 처리
-  // showInstallButton();
 });
 
 window.addEventListener('appinstalled', () => {
