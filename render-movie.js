@@ -37,10 +37,15 @@ export function renderMovie() {
   _renderMovieCalendar(el);
 }
 
+// API URL (로컬: localhost:3000, 배포: 같은 도메인)
+const API_BASE = typeof window !== 'undefined' && window.location.hostname === 'localhost'
+  ? 'http://localhost:3000'
+  : '';
+
 // 크롤링 상태 확인 및 버튼 업데이트
 async function _checkCrawlStatus() {
   try {
-    const response = await fetch('http://localhost:3000/api/status');
+    const response = await fetch(`${API_BASE}/api/status`);
     const status = await response.json();
 
     const btn = document.getElementById('movie-refresh-btn');
@@ -84,7 +89,7 @@ export async function startMovieCrawl() {
   btn.textContent = '🔄 크롤링 중...';
 
   try {
-    const response = await fetch('http://localhost:3000/api/crawl-movies', {
+    const response = await fetch(`${API_BASE}/api/crawl-movies`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' }
     });
@@ -100,7 +105,10 @@ export async function startMovieCrawl() {
     console.error('❌ 크롤링 오류:', e.message);
     btn.disabled = false;
     btn.textContent = '🔄 새로고침';
-    alert('API 서버가 실행 중이어야 합니다\nnpm run server 를 먼저 실행해주세요');
+    const msg = window.location.hostname === 'localhost'
+      ? 'API 서버가 실행 중이어야 합니다\nnpm run server 를 먼저 실행해주세요'
+      : '크롤링 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+    alert(msg);
   }
 }
 

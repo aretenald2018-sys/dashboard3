@@ -69,7 +69,8 @@
       "Bash(ls -la \"C:\\\\Users\\\\USER\\\\Desktop\\\\dashboard3-main\\(backup\\) - 복사본\"/*.js)",
       "Bash(timeout 5 node api-server.js)",
       "Bash(timeout 3 node api-server.js)",
-      "Bash(node verify-setup.js)"
+      "Bash(node verify-setup.js)",
+      "Bash(ls -la \"C:\\\\Users\\\\USER\\\\Desktop\\\\dashboard3-main\\(backup\\) - 복사본/vercel.json\")"
     ]
   }
 }

@@ -17,7 +17,17 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
+
+// 정적 파일 서빙 (배포 환경에서)
+app.use(express.static(__dirname, {
+  setHeaders: (res, filePath) => {
+    // HTML 파일은 캐시하지 않음
+    if (filePath.endsWith('.html')) {
+      res.set('Cache-Control', 'no-cache');
+    }
+  }
+}));
 
 // Firebase 설정
 const FIREBASE_PROJECT_ID = 'exercise-management';

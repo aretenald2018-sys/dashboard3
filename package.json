@@ -5,7 +5,7 @@
   "description": "Personal Dashboard with Fitness, Diet, Wine Tracking",
   "main": "app.js",
   "scripts": {
-    "start": "python -m http.server 5500",
+    "start": "node api-server.js",
     "dev": "python -m http.server 5500",
     "build": "echo 'No build needed for static site'",
     "crawl": "node crawl-movies-advanced.js",
