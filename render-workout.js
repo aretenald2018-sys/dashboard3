@@ -11,6 +11,7 @@ import { analyzeDiet }                          from './ai.js';
 
 let _date       = null;   // { y, m, d }
 let _exercises  = [];
+let _hiddenExercises = []; // 모달에서 임시로 숨길 운동 ID 목록
 let _gymStatus  = 'none'; // 'done'|'skip'|'health'|'none'
 let _cfStatus   = 'none';
 let _stretching = false;
@@ -514,7 +515,12 @@ function _renderPickerList() {
   if (!container) return;
   container.innerHTML = '';
   MUSCLES.forEach(muscle => {
-    const list = getExList().filter(e => e.muscleId === muscle.id);
+    const list = getExList()
+      .filter(e => e.muscleId === muscle.id)
+      .filter(e => !_hiddenExercises.includes(e.id)); // 숨길 운동 제외
+
+    if (list.length === 0) return; // 운동이 없으면 섹션 건너뛰기
+
     const group = document.createElement('div');
     group.className = 'ex-picker-group';
     group.innerHTML = `<div class="ex-picker-group-label" style="color:${muscle.color}">${muscle.name}</div>`;
@@ -523,8 +529,24 @@ function _renderPickerList() {
       const btn = document.createElement('button');
       btn.className = 'ex-picker-item' + (alreadyAdded ? ' already' : '');
       btn.innerHTML = `<span>${ex.name}${alreadyAdded?' ✓':''}</span>
-        <span class="ex-picker-edit" data-exid="${ex.id}">✏️</span>`;
-      btn.querySelector('.ex-picker-edit').addEventListener('click', e => { e.stopPropagation(); wtOpenExerciseEditor(ex.id, null); });
+        <div class="ex-picker-actions">
+          <span class="ex-picker-edit" data-exid="${ex.id}">✏️</span>
+          <span class="ex-picker-delete" data-exid="${ex.id}">✕</span>
+        </div>`;
+
+      // 편집 버튼
+      btn.querySelector('.ex-picker-edit').addEventListener('click', e => {
+        e.stopPropagation();
+        wtOpenExerciseEditor(ex.id, null);
+      });
+
+      // 삭제 버튼 (모달에서만 임시로 숨기기)
+      btn.querySelector('.ex-picker-delete').addEventListener('click', e => {
+        e.stopPropagation();
+        _hiddenExercises.push(ex.id);
+        _renderPickerList();
+      });
+
       if (!alreadyAdded) {
         btn.addEventListener('click', () => {
           _exercises.push({ muscleId:ex.muscleId, exerciseId:ex.id, sets:[{kg:0,reps:0,setType:'main',done:false}] });
@@ -792,3 +814,9 @@ window.wtSetGymStatus = wtSetGymStatus;
 window.wtSetCFStatus = wtSetCFStatus;
 window.wtToggleMealSkipped = wtToggleMealSkipped;
 window.saveWorkoutDay = saveWorkoutDay;
+window.wtOpenExercisePicker = wtOpenExercisePicker;
+window.wtCloseExercisePicker = wtCloseExercisePicker;
+window.wtOpenExerciseEditor = wtOpenExerciseEditor;
+window.wtCloseExerciseEditor = wtCloseExerciseEditor;
+window.wtSaveExerciseFromEditor = wtSaveExerciseFromEditor;
+window.wtDeleteExerciseFromEditor = wtDeleteExerciseFromEditor;

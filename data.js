@@ -13,9 +13,16 @@ import { INITIAL_WINES }  from './wine-data.js';
 const app = initializeApp(CONFIG.FIREBASE);
 const db  = getFirestore(app);
 
+// Firebase IndexedDB 오프라인 캐싱 설정
 enableIndexedDbPersistence(db).catch(err => {
-  if (err.code === 'failed-precondition') console.warn('[data] 멀티탭 환경 — 오프라인 캐시 비활성');
-  else if (err.code === 'unimplemented')  console.warn('[data] 브라우저가 오프라인 캐시 미지원');
+  if (err.code === 'failed-precondition') {
+    // 멀티탭 환경: 이전 탭을 닫으면 해결됨
+    console.warn('[data] 멀티탭 환경 감지 — 다른 탭의 대시보드를 닫아주세요');
+  } else if (err.code === 'unimplemented') {
+    console.warn('[data] 브라우저가 오프라인 캐시 미지원 — 온라인 모드로 작동합니다');
+  } else {
+    console.warn('[data] IndexedDB 초기화 실패:', err.code);
+  }
 });
 
 let _cache        = {};
@@ -27,9 +34,10 @@ let _events       = []; // 월간기록 캘린더 이벤트
 let _cooking      = []; // 요리 실험 기록
 let _bodyCheckins = []; // 주간 체크인 [{id, date, weight, bodyFatPct}]
 let _nutritionDB  = []; // 나만의 영양 DB [{id, name, unit, kcal, carbs, protein, fat, note}]
+let _movies       = {}; // 영화 데이터 {year-month: [{date, title, tags}]}
 
 // ── 설정 캐시 (Firebase settings 컬렉션) ────────────────────────
-const DEFAULT_TAB_ORDER = ['home','workout','cooking','monthly','calendar','wine','stats','loa'];
+const DEFAULT_TAB_ORDER = ['home','workout','cooking','monthly','calendar','wine','movie','stats','loa'];
 
 const DEFAULT_DIET_PLAN = {
   // 신체 정보
@@ -55,6 +63,10 @@ let _settings = {
   weekly_memos:     {},
   tab_order:        DEFAULT_TAB_ORDER,
   diet_plan:        null,
+  streak_settings:  {
+    fontSizeMode: 'default',  // 'small' | 'default' | 'large'
+    cellWidthMode: 'default'  // 'small' | 'default' | 'large'
+  },
 };
 
 function _setSyncStatus(state) {
@@ -131,6 +143,14 @@ export async function loadAll() {
     _nutritionDB = [];
     nutritionSnap.forEach(d => _nutritionDB.push(d.data()));
 
+    // ── 영화 데이터 로드 ──
+    const movieSnap = await getDocs(collection(db, 'movies'));
+    _movies = {};
+    movieSnap.forEach(d => {
+      const data = d.data();
+      _movies[d.id] = data;
+    });
+
     // ── 설정 로드 (Firebase → localStorage 마이그레이션 포함) ──
     const settingsSnap = await getDocs(collection(db, 'settings'));
     const fbMap = {};
@@ -143,6 +163,7 @@ export async function loadAll() {
     _settings.weekly_memos   = fbMap.weekly_memos   ?? _migrateFromLS('weekly_memos',   {});
     _settings.tab_order      = fbMap.tab_order      ?? DEFAULT_TAB_ORDER;
     _settings.diet_plan      = fbMap.diet_plan      ?? null;
+    _settings.streak_settings= fbMap.streak_settings ?? { fontSizeMode: 'default', cellWidthMode: 'default' };
     if (_settings.diet_plan) Object.assign(_dietPlan, _settings.diet_plan);
 
     // localStorage 데이터를 Firebase로 마이그레이션 (최초 1회)
@@ -591,6 +612,23 @@ export const isBeforeStart = (y,m,d) => {
   return t.getTime() < start.getTime();
 };
 
+// ── Streak Settings ────────────────────────────────────────────────
+export const getStreakSettings = () => _settings.streak_settings || {
+  fontSizeMode: 'default',
+  cellWidthMode: 'default'
+};
+
+export async function saveStreakSettings(key, value) {
+  if (!_settings.streak_settings) {
+    _settings.streak_settings = {
+      fontSizeMode: 'default',
+      cellWidthMode: 'default'
+    };
+  }
+  _settings.streak_settings[key] = value;
+  await _saveSetting('streak_settings', _settings.streak_settings);
+}
+
 function _sortExList(list) {
   const mOrder = MUSCLES.map(m => m.id);
   return list.sort((a,b) => {
@@ -598,3 +636,48 @@ function _sortExList(list) {
     return mi !== 0 ? mi : (a.order||99) - (b.order||99);
   });
 }
+
+// ── 영화 데이터 ────────────────────────────────────────────────────
+export async function getMovieData(year, month) {
+  const key = `${year}-${String(month + 1).padStart(2, '0')}`;
+
+  // 캐시에 있으면 반환
+  if (_movies[key]) {
+    return _movies[key];
+  }
+
+  // JSON 파일에서 로드 시도 (GitHub Pages용)
+  try {
+    const response = await fetch(`./data/movies/${key}.json`);
+    if (response.ok) {
+      const data = await response.json();
+      _movies[key] = data;
+      return data;
+    }
+  } catch (e) {
+    console.warn(`[data] JSON 로드 실패: ${key}`, e.message);
+  }
+
+  return {};
+}
+
+export async function saveMovieData(year, month, data) {
+  const key = `${year}-${String(month + 1).padStart(2, '0')}`;
+  _movies[key] = data;
+  _setSyncStatus('syncing');
+  try {
+    await setDoc(doc(db, 'movies', key), data);
+    _setSyncStatus('ok');
+  } catch(e) {
+    _setSyncStatus('err');
+    console.error('[data] saveMovieData:', e);
+  }
+}
+
+export function getAllMovieMonths() {
+  return Object.keys(_movies).sort();
+}
+
+// ── Window 전역 노출 (UI에서 직접 접근 가능) ────────────────────────
+window.getStreakSettings = getStreakSettings;
+window.saveStreakSettings = saveStreakSettings;

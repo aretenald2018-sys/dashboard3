@@ -3,7 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="description" content="일일 운동, 식단, 건강을 추적하고 관리하는 개인 대시보드 앱">
+<meta name="theme-color" content="#1a1a1a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Life Streak">
 <title>Life Streak</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%231a1a1a' width='192' height='192'/><text x='50%' y='50%' font-size='80' font-weight='bold' fill='%23ffaa00' text-anchor='middle' dominant-baseline='central'>📊</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
@@ -25,6 +32,7 @@
   <button class="tab-btn"        data-tab="cooking"  draggable="true" onclick="switchTab('cooking')">🍳 요리</button>
   <button class="tab-btn"        data-tab="calendar" draggable="true" onclick="switchTab('calendar')">📆 Streak</button>
   <button class="tab-btn"        data-tab="wine"     draggable="true" onclick="switchTab('wine')">🍷 와인</button>
+  <button class="tab-btn"        data-tab="movie"    draggable="true" onclick="switchTab('movie')">🎬 영화</button>
   <button class="tab-btn"        data-tab="stats"    draggable="true" onclick="switchTab('stats')">📊 통계</button>
   <button class="tab-btn"        data-tab="loa"      draggable="true" onclick="switchTab('loa')">🗺️ 로아</button>
   <button class="tab-btn tab-btn-settings" onclick="openSettingsModal()">⚙️</button>
@@ -305,6 +313,7 @@
     <button class="nav-btn" onclick="changeYear(-1)">◀</button>
     <span class="nav-year" id="year-label"></span>
     <button class="nav-btn" onclick="changeYear(1)">▶</button>
+    <button class="nav-btn" onclick="openStreakSettingsModal()" style="margin-left:auto">⚙️</button>
   </div>
   <div class="legend">
     <div class="legend-item"><div class="legend-dot" style="background:var(--gym)"></div>헬스</div>
@@ -380,6 +389,83 @@
 <!-- 모달들은 modals/*.js에서 동적으로 주입됩니다 -->
 <div id="modals-container"></div>
 
+<!-- Streak 설정 모달 -->
+<div class="modal-overlay" id="streak-settings-modal" onclick="closeStreakSettingsModal(event)" style="display:none;z-index:1001">
+  <div class="modal-sheet">
+    <div class="sheet-handle"></div>
+    <div class="modal-title">Streak 탭 세팅</div>
+    <div class="ex-editor-form" style="padding-bottom:8px">
+      <div style="margin-bottom:16px">
+        <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:8px;font-weight:600">일정 글자 크기</label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px">
+            <input type="radio" name="font-size" value="small" style="cursor:pointer">
+            작음
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px">
+            <input type="radio" name="font-size" value="default" checked style="cursor:pointer">
+            기본
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px">
+            <input type="radio" name="font-size" value="large" style="cursor:pointer">
+            큼
+          </label>
+        </div>
+      </div>
+      <div style="margin-bottom:16px">
+        <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:8px;font-weight:600">셀 너비</label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px">
+            <input type="radio" name="cell-width" value="small" style="cursor:pointer">
+            좁음
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px">
+            <input type="radio" name="cell-width" value="default" checked style="cursor:pointer">
+            기본
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px">
+            <input type="radio" name="cell-width" value="large" style="cursor:pointer">
+            넓음
+          </label>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="ex-editor-save" onclick="saveStreakSettingsAndClose()" style="flex:1">저장</button>
+        <button class="ex-editor-cancel" onclick="closeStreakSettingsModal()" style="flex:1">취소</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Streak 설정 모달 함수
+function openStreakSettingsModal() {
+  const settings = window.getStreakSettings();
+  document.querySelector(`input[name="font-size"][value="${settings.fontSizeMode}"]`).checked = true;
+  document.querySelector(`input[name="cell-width"][value="${settings.cellWidthMode}"]`).checked = true;
+  document.getElementById('streak-settings-modal').style.display = 'flex';
+}
+
+function closeStreakSettingsModal(e) {
+  if (e && e.target !== document.getElementById('streak-settings-modal')) return;
+  document.getElementById('streak-settings-modal').style.display = 'none';
+}
+
+async function saveStreakSettingsAndClose() {
+  const fontSizeMode = document.querySelector('input[name="font-size"]:checked')?.value || 'default';
+  const cellWidthMode = document.querySelector('input[name="cell-width"]:checked')?.value || 'default';
+
+  await window.saveStreakSettings('fontSizeMode', fontSizeMode);
+  await window.saveStreakSettings('cellWidthMode', cellWidthMode);
+
+  if (window.renderCalendar) {
+    window.renderCalendar();
+  }
+
+  document.getElementById('streak-settings-modal').style.display = 'none';
+}
+</script>
+
 <!-- 월간 캘린더 모달 -->
 <div class="modal-overlay" id="monthly-calendar-modal" onclick="closeMonthlyCalendarModal(event)">
   <div class="modal-sheet" style="max-height:90vh;overflow-y:auto;max-width:600px;padding:12px;">
@@ -395,6 +481,18 @@
 <div id="loa-container" class="loa-container"></div>
 </div>
 
+<!-- ═══ 영화 탭 ═══ -->
+<div id="tab-movie" class="tab-panel">
+  <div class="movie-tab-header">
+    <button class="month-nav-btn" onclick="changeMovieMonth(-1)">◀</button>
+    <span class="movie-tab-title" id="movie-label">2026년 3월</span>
+    <button class="month-nav-btn" onclick="changeMovieMonth(1)">▶</button>
+    <button class="movie-refresh-btn" id="movie-refresh-btn" onclick="startMovieCrawl()" title="muko.kr에서 최신 영화 데이터 자동 크롤링">🔄 새로고침</button>
+  </div>
+  <div id="movie-tag-filters" class="movie-tag-filters"></div>
+  <div id="movie-calendar-content" class="movie-calendar-content"></div>
+</div>
+
 <div id="tab-wine" class="tab-panel">
   <div class="wine-tab-header">
     <span class="wine-tab-title">🍷 와인 테이스팅 노트</span>
@@ -405,6 +503,54 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script type="module" src="app.js"></script>
+
+<!-- PWA Service Worker 등록 -->
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    console.log('[PWA] Service Worker 등록 시도 중...');
+    navigator.serviceWorker.register('sw.js', { scope: '/dashboard3/' })
+      .then(registration => {
+        console.log('[PWA] Service Worker 등록 성공:', registration);
+        console.log('[PWA] Service Worker 상태 - Active:', !!registration.active, 'Installing:', !!registration.installing, 'Waiting:', !!registration.waiting);
+
+        // 업데이트 확인
+        registration.addEventListener('updatefound', () => {
+          console.log('[PWA] updatefound 이벤트 감지');
+          const newWorker = registration.installing;
+          newWorker.addEventListener('statechange', () => {
+            console.log('[PWA] Service Worker 상태 변경:', newWorker.state);
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              console.log('[PWA] 새로운 버전이 준비되었습니다. 페이지를 새로고침하세요.');
+            }
+          });
+        });
+
+        // 현재 활성 Service Worker 확인
+        navigator.serviceWorker.ready.then(registration => {
+          console.log('[PWA] Service Worker 준비 완료:', registration);
+        });
+      })
+      .catch(error => {
+        console.error('[PWA] Service Worker 등록 실패:', error);
+        console.error('[PWA] 에러 상세:', error.message);
+      });
+} else {
+  console.warn('[PWA] Service Worker를 지원하지 않는 브라우저');
+}
+
+// 설치 프롬프트 처리 (PWA 설치 버튼)
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+  deferredPrompt = e;
+  console.log('[PWA] 설치 준비 완료');
+});
+
+window.addEventListener('appinstalled', () => {
+  console.log('[PWA] 앱이 설치되었습니다');
+  deferredPrompt = null;
+});
+</script>
 </body>
 </html>
 
