@@ -78,6 +78,19 @@
   <!-- 홈 섹션 -->
   <div class="home-section">
 
+    <!-- 주간 스트릭 미니 캘린더 -->
+    <div class="home-card" id="card-weekly-streak">
+      <div class="section-title-row" style="align-items:center">
+        <div class="home-card-title" style="margin-bottom:0">📅 이번 주</div>
+        <div class="ws-stepper">
+          <button class="ws-stepper-btn" onclick="window.changeHomeStreakDays((window._homeStreakDays||6)-1)">◀</button>
+          <span class="ws-stepper-val" id="home-streak-days-label">7일</span>
+          <button class="ws-stepper-btn" onclick="window.changeHomeStreakDays((window._homeStreakDays||6)+1)">▶</button>
+        </div>
+      </div>
+      <div id="weekly-streak-grid"></div>
+    </div>
+
     <!-- 미니 메모 (체크리스트) -->
     <div class="home-card" id="card-mini-memo">
       <div class="section-title-row">

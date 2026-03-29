@@ -283,6 +283,30 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
 .dash-wine-free .dash-card-title{color:#a78bfa;}
 .dash-wine-free .dash-stat-val{color:#a78bfa;}
 
+/* ── 주간 스트릭 미니 캘린더 ── */
+.ws-stepper{display:flex;align-items:center;gap:0;}
+.ws-stepper-btn{background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;padding:2px 4px;line-height:1;-webkit-tap-highlight-color:transparent;transition:color .12s;}
+.ws-stepper-btn:active{color:var(--accent);}
+.ws-stepper-val{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted2);min-width:24px;text-align:center;}
+.weekly-streak-table{width:100%;border-collapse:collapse;margin-top:10px;table-layout:fixed;}
+.weekly-streak-table th{padding:0 0 6px;text-align:center;vertical-align:bottom;}
+.weekly-streak-table td{padding:0;text-align:center;}
+.ws-row-label{font-size:13px;width:26px;text-align:center;}
+.ws-cell{width:100%;height:34px;background:var(--surface2);border-right:1px solid var(--bg);border-bottom:1px solid var(--bg);display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;transition:background .1s;}
+.ws-cell:active{opacity:.7;}
+.ws-cell.gym-on{background:var(--gym-dim);}
+.ws-cell.cf-on{background:var(--cf-dim);}
+.ws-cell.diet-ok{background:var(--diet-ok-dim);}
+.ws-cell.diet-bad{background:var(--diet-bad-dim);}
+.ws-cell.skip-disabled{background:#1a1a1a;}
+.ws-cell.health-issue,.ws-cell.diet-skipped{background:#0a2010;}
+.ws-cell.ws-future{opacity:.15;pointer-events:none;}
+.ws-cell.ws-today{box-shadow:inset 0 0 0 1.5px var(--accent);}
+.weekly-streak-table tbody tr:first-child .ws-cell{border-radius:6px 6px 0 0;}
+.weekly-streak-table tbody tr:last-child .ws-cell{border-radius:0 0 6px 6px;border-bottom:none;}
+.ws-today-col{position:relative;}
+.ws-today-col::after{content:'';position:absolute;bottom:-4px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--accent);}
+
 /* ── 오늘 운동 빠른기록 바 ── */
 .quick-workout-bar{padding:10px 16px;background:var(--surface);border-bottom:1px solid var(--border);}
 .quick-workout-btn{width:100%;padding:11px;background:var(--gym-dim);border:1px solid var(--gym);border-radius:10px;color:var(--gym);font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all .12s;}

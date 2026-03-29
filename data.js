@@ -67,6 +67,7 @@ let _settings = {
     fontSizeMode: 'default',  // 'small' | 'default' | 'large'
     cellWidthMode: 'default'  // 'small' | 'default' | 'large'
   },
+  home_streak_days: 6,        // 0~6: 월요일 이후 추가 표시 일수 (6 = 일요일까지)
 };
 
 function _setSyncStatus(state) {
@@ -164,6 +165,7 @@ export async function loadAll() {
     _settings.tab_order      = fbMap.tab_order      ?? DEFAULT_TAB_ORDER;
     _settings.diet_plan      = fbMap.diet_plan      ?? null;
     _settings.streak_settings= fbMap.streak_settings ?? { fontSizeMode: 'default', cellWidthMode: 'default' };
+    _settings.home_streak_days = fbMap.home_streak_days ?? 6;
     if (_settings.diet_plan) Object.assign(_dietPlan, _settings.diet_plan);
 
     // localStorage 데이터를 Firebase로 마이그레이션 (최초 1회)
@@ -678,6 +680,13 @@ export async function saveStreakSettings(key, value) {
   }
   _settings.streak_settings[key] = value;
   await _saveSetting('streak_settings', _settings.streak_settings);
+}
+
+// ── Home Streak Days ──────────────────────────────────────────────
+export const getHomeStreakDays = () => _settings.home_streak_days ?? 6;
+export async function saveHomeStreakDays(n) {
+  _settings.home_streak_days = Math.max(0, Math.min(6, n));
+  await _saveSetting('home_streak_days', _settings.home_streak_days);
 }
 
 function _sortExList(list) {
