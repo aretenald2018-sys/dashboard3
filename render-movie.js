@@ -6,6 +6,9 @@
 import { MONTHS } from './config.js';
 import { TODAY, daysInMonth, getMovieData, saveMovieData } from './data.js';
 
+// saveMovieData를 전역으로 노출 (크롤링 결과 저장용)
+let _saveMovieData = saveMovieData;
+
 let _currentYear  = TODAY.getFullYear();
 let _currentMonth = TODAY.getMonth();
 
@@ -62,6 +65,15 @@ async function _checkCrawlStatus() {
       btn.disabled = false;
       btn.textContent = '🔄 새로고침';
       btn.style.opacity = '1';
+
+      // 크롤링 데이터 저장
+      if (status.data) {
+        const { year, month, events, lastUpdated, source } = status.data;
+        await _saveMovieData(year, month, {
+          year, month, events, lastUpdated, source
+        });
+        console.log('✅ 데이터 저장 완료');
+      }
 
       // 데이터 새로고침
       renderMovie();
