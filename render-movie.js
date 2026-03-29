@@ -45,11 +45,26 @@ const API_BASE = typeof window !== 'undefined' && window.location.hostname === '
   ? 'http://localhost:3000'
   : '';
 
+// 폴링 시도 카운터 (무한 루프 방지)
+let _pollAttempts = 0;
+const MAX_POLL_ATTEMPTS = 60; // 1분 = 60초
+
 // 크롤링 상태 확인 및 버튼 업데이트
 async function _checkCrawlStatus() {
   try {
-    const response = await fetch(`${API_BASE}/api/status`);
+    // API 서버가 없으면 중단
+    if (!API_BASE) {
+      console.warn('⚠️ API 서버 URL이 설정되지 않았습니다. npm run server를 실행하세요.');
+      return;
+    }
+
+    const response = await fetch(`${API_BASE}/api/status`, { timeout: 5000 });
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
     const status = await response.json();
+    _pollAttempts = 0; // 성공 시 카운터 리셋
 
     const btn = document.getElementById('movie-refresh-btn');
     if (!btn) return;
@@ -59,8 +74,17 @@ async function _checkCrawlStatus() {
       btn.textContent = `🔄 크롤링 중 (${status.progress || 0}%)`;
       btn.style.opacity = '0.5';
 
-      // 1초마다 상태 확인
-      setTimeout(_checkCrawlStatus, 1000);
+      // 1초마다 상태 확인 (최대 1분)
+      if (_pollAttempts < MAX_POLL_ATTEMPTS) {
+        _pollAttempts++;
+        setTimeout(_checkCrawlStatus, 1000);
+      } else {
+        console.error('❌ 크롤링 타임아웃 - 너무 오래 걸리고 있습니다');
+        btn.disabled = false;
+        btn.textContent = '🔄 새로고침';
+        btn.style.opacity = '1';
+        alert('크롤링이 타임아웃되었습니다. 나중에 다시 시도해주세요.');
+      }
     } else if (status.status === 'success') {
       btn.disabled = false;
       btn.textContent = '🔄 새로고침';
@@ -88,7 +112,30 @@ async function _checkCrawlStatus() {
       alert(status.message);
     }
   } catch (e) {
-    // API 서버가 없으면 무시
+    _pollAttempts++;
+
+    // 너무 많은 오류는 로깅하지 않기
+    if (_pollAttempts === 1) {
+      console.warn('⚠️ API 서버에 연결할 수 없습니다. 다음을 확인하세요:');
+      console.warn('   1. npm run server 실행 여부');
+      console.warn('   2. 포트 3000이 사용 가능한지');
+      console.warn('   3. 또는 Railway 배포 완료 대기');
+    }
+
+    // 최대 시도 횟수에 도달하면 중단
+    if (_pollAttempts >= MAX_POLL_ATTEMPTS) {
+      const btn = document.getElementById('movie-refresh-btn');
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = '🔄 새로고침';
+        btn.style.opacity = '1';
+      }
+      console.error('❌ API 서버 연결 타임아웃');
+      return;
+    }
+
+    // 계속 재시도
+    setTimeout(_checkCrawlStatus, 1000);
   }
 }
 
