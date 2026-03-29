@@ -396,7 +396,11 @@ export function imageToBase64(file) {
 // ── 다이어트 플랜 (Firebase settings) ────────────────────────────
 // 활동계수 변경 시 847 상수도 자동 재계산: 7700 / 7 / activityFactor
 export const getDietPlan = () => ({ ...DEFAULT_DIET_PLAN, ..._settings.diet_plan });
-export const saveDietPlan = (plan) => _saveSetting('diet_plan', { ...(getDietPlan()), ...plan });
+export const saveDietPlan = async (plan) => {
+  const merged = { ...(getDietPlan()), ...plan };
+  Object.assign(_dietPlan, merged);
+  return _saveSetting('diet_plan', merged);
+};
 
 // 다이어트 계산 유틸
 export function calcDietMetrics(plan) {
@@ -473,25 +477,52 @@ export const getDiet = (y,m,d) => {
   return {
     breakfast:r.breakfast||'', lunch:r.lunch||'', dinner:r.dinner||'',
     bOk:r.bOk??null, lOk:r.lOk??null, dOk:r.dOk??null,
-    bKcal:r.bKcal||0, lKcal:r.lKcal||0, dKcal:r.dKcal||0,
+    bKcal:r.bKcal||0, lKcal:r.lKcal||0, dKcal:r.dKcal||0, sKcal:r.sKcal||0,
     bReason:r.bReason||'', lReason:r.lReason||'', dReason:r.dReason||'',
+    bFoods:r.bFoods||[], lFoods:r.lFoods||[], dFoods:r.dFoods||[], sFoods:r.sFoods||[],
   };
 };
 
 export const dietDayOk = (y,m,d) => {
+  // 1. 날짜의 식단 데이터 로드
   const dt = getDiet(y,m,d);
-  const bSkip = getBreakfastSkipped(y,m,d);
-  const lSkip = getLunchSkipped(y,m,d);
-  const dSkip = getDinnerSkipped(y,m,d);
 
-  // 아무 식사 기록 없으면 null
-  if (!dt.breakfast && !dt.lunch && !dt.dinner && !bSkip && !lSkip && !dSkip) return null;
+  // 2. 사용자 설정 로드
+  const plan = getDietPlan();
+  const metrics = calcDietMetrics(plan);
 
-  // 칼로리 충족으로 판정 (각 식사마다 0 이상이면 입력된 것으로 간주)
-  const bOk = bSkip || dt.bKcal > 0;
-  const lOk = lSkip || dt.lKcal > 0;
-  const dOk = dSkip || dt.dKcal > 0;
-  return bOk && lOk && dOk;
+  // 3. 오늘이 리피드데이인지 판정
+  const dayOfWeek = new Date(y, m - 1, d).getDay();  // 0=일, 6=토
+  const isRefeed = plan.refeedDays.includes(dayOfWeek);
+  const limitKcal = isRefeed ? metrics.refeed.kcal : metrics.deficit.kcal;
+
+  // 4. 오늘 섭취 총 칼로리 계산
+  const totalKcal = (dt.bKcal || 0) + (dt.lKcal || 0) + (dt.dKcal || 0) + (dt.sKcal || 0);
+
+  // 5. Skip 여부 확인
+  const bSkip = getBreakfastSkipped(y, m, d);
+  const lSkip = getLunchSkipped(y, m, d);
+  const dSkip = getDinnerSkipped(y, m, d);
+
+  // 6. 기록 유무 확인 (음식 또는 메모가 있는 경우)
+  const hasRecord = dt.breakfast || dt.lunch || dt.dinner ||
+                    (dt.bFoods?.length > 0) || (dt.lFoods?.length > 0) ||
+                    (dt.dFoods?.length > 0) || (dt.sFoods?.length > 0);
+
+  // 아무 기록도 없고 스킵도 안 했다면 null (빈 칸)
+  if (!hasRecord && !bSkip && !lSkip && !dSkip) return null;
+
+  // 7. 핵심: 칼로리 제한 비교
+  const calorieSuccess = totalKcal <= limitKcal;
+
+  // 8. 각 끼니별 성공 여부
+  const bOk = bSkip || (dt.bOk ?? false);
+  const lOk = lSkip || (dt.lOk ?? false);
+  const dOk = dSkip || (dt.dOk ?? false);
+
+  // 9. 최종 결과 반환
+  // (모든 끼니가 기록/스킵됨) AND (총 칼로리가 제한선 이하)
+  return bOk && lOk && dOk && calorieSuccess;
 };
 
 export const calcVolume = (sets) =>
