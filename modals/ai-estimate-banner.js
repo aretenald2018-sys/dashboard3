@@ -338,7 +338,7 @@ export async function confirmEstimate(meal) {
 
   _renderMealFoodItems(meal);
   _renderDietResults();
-  await _autoSaveDiet();
+  await _autoSaveDiet({ meal });
 
   dismiss(meal, { keepPhoto: true, silent: true });
   showToast(`AI 추정 ${Math.round(st.estimate.totalKcal)}kcal 반영 완료`, 2500, 'success');
@@ -359,8 +359,8 @@ export async function dismiss(meal, options = {}) {
     try {
       const { _renderMealPhotos } = await import('../workout/render.js');
       _renderMealPhotos();
-      const { saveWorkoutDay } = await import('../workout/save.js');
-      saveWorkoutDay().catch(() => {});
+      const { _autoSaveDiet } = await import('../workout/save.js');
+      _autoSaveDiet({ meal }).catch(() => {});
     } catch {}
     if (!options.silent) showToast('AI 결과와 사진을 모두 취소했어요', 2500, 'info');
     return;

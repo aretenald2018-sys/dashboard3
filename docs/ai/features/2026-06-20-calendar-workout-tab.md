@@ -85,3 +85,19 @@
   8. PASS: 원격 `build-info.json` shortCommit `7dfc8644fee5`, `sw.js` 캐시 버전 `tomatofarm-v20260620z10-calendar-workout-bodyparts`
   9. PASS: 원격 `render-calendar.js`에 `displayLabels`, `cal-workout-bar-part`, 부위별 세트 title 마커 존재. 원격 `style.css`에 `.cal-workout-bar-part`, `font-size: 8px` 존재.
   10. not verified yet: 원격 브라우저에서 하단 `캘린더` 클릭 후에도 활성 패널이 `tab-home`에 남고 `window.switchTab`이 `undefined`라 실제 캘린더 UI 클릭 플로우는 기존 네비게이션 문제로 확인하지 못했다.
+
+## 후속 Slice 3 실행 결과 — 하단 탭 라우터 보강
+
+- 상태: 구현 및 정적/단위 검증 완료. 무로그인 자동화 브라우저는 로그인/모달 레이어가 하단 nav 위를 덮어 실제 클릭 플로우는 not verified yet.
+- 변경:
+  - `app.js`: `.tab-btn[data-tab]` 클릭을 캡처 단계에서 직접 처리하는 `_initTabButtonRouter()`를 추가했다. legacy inline handler보다 먼저 `preventDefault()`/`stopImmediatePropagation()`을 수행해 전역 함수 준비 상태와 중복 실행 위험을 줄인다.
+  - `tests/diet-add-button-binding.test.js`: 탭 버튼 캡처 라우터가 등록되어 있고 legacy inline handler보다 먼저 멈추는 정적 회귀 테스트를 추가했다.
+  - `sw.js`: `STATIC_ASSETS` 대상 `app.js` 변경 반영을 위해 `CACHE_VERSION`을 `tomatofarm-v20260623z12-stats-life-zone-tab-router`로 갱신했다.
+- 검증:
+  1. PASS: `node --check app.js`
+  2. PASS: `node --check sw.js`
+  3. PASS: `node --test tests/diet-add-button-binding.test.js tests/home-life-zone-state.test.js tests/save-schema.test.js` — 70개 통과
+  4. PASS: `node scripts/verify-runtime-assets.mjs` — `refs=786`
+  5. PASS: `git diff --check`
+  6. PASS: `http://localhost:5500/` HTTP 200
+  7. not verified yet: 무로그인 in-app browser에서 로그인/모달 레이어가 `button.tab-btn[data-tab="calendar"]` 위를 덮어 실제 클릭 이벤트가 nav 버튼에 도달하지 않았다.

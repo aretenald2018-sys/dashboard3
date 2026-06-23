@@ -17,6 +17,7 @@ import { deriveActivityFlagsFromDetails, deriveDietSuccessFromWorkout } from './
 import { MOVEMENTS } from '../config.js';
 import { calcSetVolume } from '../calc/volume.js';
 import { shouldKeepMaxDraftExercisesForSavePure } from './save-pure.js';
+import { hasLifeZoneDietActivity, hasLifeZoneWorkoutActivity } from '../home/life-zone-state.js';
 
 // 미래 날짜 저장 가드 — 어떤 경로로든 미래 날짜 쓰기 금지 (B-3).
 function _blockIfFutureDate() {
@@ -77,6 +78,62 @@ function _assertSchemaParity(name, payload, expectedKeys) {
   if (missing.length || extra.length) {
     console.warn(`[save-schema] ${name} 드리프트`, { missing, extra });
   }
+}
+
+const LIFE_ZONE_MEAL_KEYS = {
+  breakfast: { text: 'breakfast', foods: 'bFoods', kcal: 'bKcal', photo: 'bPhoto', skipped: 'breakfast_skipped' },
+  lunch: { text: 'lunch', foods: 'lFoods', kcal: 'lKcal', photo: 'lPhoto', skipped: 'lunch_skipped' },
+  dinner: { text: 'dinner', foods: 'dFoods', kcal: 'dKcal', photo: 'dPhoto', skipped: 'dinner_skipped' },
+  snack: { text: 'snack', foods: 'sFoods', kcal: 'sKcal', photo: 'sPhoto', skipped: null },
+};
+
+function _makeLifeZoneSnapshot(state, extra = {}) {
+  return {
+    state,
+    updatedAt: Date.now(),
+    ...extra,
+  };
+}
+
+function _mealPayloadHasRecord(payload, meal) {
+  if (!payload || !meal) return false;
+  return !!(
+    String(payload[meal.text] || '').trim()
+    || (Array.isArray(payload[meal.foods]) && payload[meal.foods].length > 0)
+    || (Number(payload[meal.kcal]) || 0) > 0
+    || payload[meal.photo]
+    || (meal.skipped && payload[meal.skipped])
+  );
+}
+
+function _resolveLifeZoneDietMeal(payload, requestedMeal) {
+  const requested = LIFE_ZONE_MEAL_KEYS[requestedMeal];
+  if (requested && _mealPayloadHasRecord(payload, requested)) return requestedMeal;
+  const fallbackOrder = ['snack', 'dinner', 'lunch', 'breakfast'];
+  return fallbackOrder.find((meal) => _mealPayloadHasRecord(payload, LIFE_ZONE_MEAL_KEYS[meal])) || null;
+}
+
+function _attachLifeZoneWorkoutSnapshot(payload) {
+  const snapshot = hasLifeZoneWorkoutActivity(payload)
+    ? _makeLifeZoneSnapshot('workout')
+    : null;
+  return {
+    ...payload,
+    lifeZoneWorkoutActivity: snapshot,
+    lifeZoneLastActivity: snapshot,
+  };
+}
+
+function _attachLifeZoneDietSnapshot(payload, options = {}) {
+  const meal = _resolveLifeZoneDietMeal(payload, options.meal);
+  const snapshot = hasLifeZoneDietActivity(payload)
+    ? _makeLifeZoneSnapshot('diet', meal ? { meal } : {})
+    : null;
+  return {
+    ...payload,
+    lifeZoneDietActivity: snapshot,
+    lifeZoneLastActivity: snapshot,
+  };
 }
 
 // ── 운동 도메인 페이로드 ─────────────────────────────────────────
@@ -355,7 +412,7 @@ export async function saveWorkoutDay(options = {}) {
   const btn = silent ? null : document.getElementById('wt-save-btn');
   if (btn) { btn.disabled = true; btn.textContent = '저장 중...'; }
 
-  const payload = _buildWorkoutPayload(cleanEx, isDietSuccess);
+  const payload = _attachLifeZoneWorkoutSnapshot(_buildWorkoutPayload(cleanEx, isDietSuccess));
   _assertSchemaParity('workout', payload, WORKOUT_PAYLOAD_KEYS);
   try {
     if (!_isWorkoutDateStill(startedKey, 'before-write')) return;
@@ -382,7 +439,7 @@ export async function saveWorkoutDay(options = {}) {
 
 // ── 식단 자동 저장 (식단 도메인) ────────────────────────────────
 // 식단 페이로드만 merge 저장 — 운동 필드 전부 제외 → 자동저장이 운동을 건드리지 못함.
-export async function _autoSaveDiet() {
+export async function _autoSaveDiet(options = {}) {
   const startedKey = _workoutDateKeyFromState();
   const ctx = _prepareSave({ syncWorkoutDetails: false });
   if (!ctx) {
@@ -400,7 +457,7 @@ export async function _autoSaveDiet() {
   });
 
   try {
-    const payload = _buildDietPayload(isDietSuccess);
+    const payload = _attachLifeZoneDietSnapshot(_buildDietPayload(isDietSuccess), options);
     _assertSchemaParity('diet', payload, DIET_PAYLOAD_KEYS);
     if (!_isWorkoutDateStill(startedKey, 'diet-before-write')) return;
     await saveDay(ctxKey, payload, { rethrow: true, mode: 'merge' });
@@ -416,6 +473,7 @@ export async function _autoSaveDiet() {
 
     console.log('[render-workout] 식단 자동 저장 완료');
     _refreshTabDots();
+    document.dispatchEvent(new CustomEvent('sheet:saved'));
     showCenterToast('저장되었습니다');
   } catch(e) {
     console.error('[render-workout] 자동 저장 실패:', e);

@@ -309,6 +309,28 @@
   - 좁은 화면에서 텍스트가 무리 없이 들어가도록 요약 버튼 padding과 숫자 크기만 소폭 줄인다.
   - `style.css`와 `sw.js`는 `STATIC_ASSETS` 대상이므로 `CACHE_VERSION`을 bump한다.
 - 상태: 2026-06-23 실행 완료. 브라우저 UI 플로우는 not verified yet.
+
+### Slice 11 — 라이프존 최근 식단 입력 우선 반영 보정
+
+- 목표: 같은 날 운동 기록이 이미 있어도, 사용자가 마지막으로 간식/식단을 입력하면 라이프존 actor가 식사존과 해당 끼니 말풍선으로 갱신된다.
+- 원인:
+  - `resolveLifeZoneActivity()`가 기존 오늘 문서에서 운동 기록을 식단보다 항상 먼저 선택해, 나중에 저장한 간식이 있어도 `오늘 가슴 완료`가 계속 표시될 수 있다.
+  - 일반/AI 식단 사진 업로드가 `saveWorkoutDay()`를 호출해 식단 입력이 운동 저장 경로로 기록되는 문제가 있다.
+- 내용:
+  - 운동/식단 저장 payload에 `lifeZoneLastActivity` snapshot을 남기고 라이프존 판정에서 이 값을 우선한다.
+  - 식단 저장 payload에는 `lifeZoneDietActivity.meal`을 남겨 `간식냠냠` 같은 최신 끼니 말풍선을 안정적으로 표시한다.
+  - 식단 사진 업로드/삭제와 AI 식단 확정 저장은 `_autoSaveDiet({ meal })` 경로로 저장한다.
+  - snapshot이 없는 기존 오늘 문서라도 간식 기록이 있으면 운동 기록보다 식사 상태를 우선하는 레거시 fallback을 둔다.
+  - `저녁냠냠` actor와 `간식냠냠` actor가 동시에 있어도 서로 다른 식사 슬롯에 배치되는 회귀 테스트를 추가한다.
+- 검증:
+  - `node --check home/life-zone-state.js`
+  - `node --check workout/save.js`
+  - `node --check workout/save-schema.js`
+  - `node --check workout/render.js`
+  - `node --check workout-ui.js`
+  - `node --check modals/ai-estimate-banner.js`
+  - `node --test tests/home-life-zone-state.test.js tests/save-schema.test.js tests/diet-add-button-binding.test.js`
+  - `git diff --check`
 - 리스크: `줍스/문정토마토/이재헌` 이름이 계정 id와 다르거나 사용자의 친구가 아닐 수 있다.
   - 대안: `lifeZoneRoster` 설정을 두고 account id를 명시한다. 없으면 현재 유저/이웃 중 닉네임 매칭으로 fallback.
 - 리스크: 실시간 입력 중 상태는 현재 데이터만으로 판정할 수 없다.

@@ -217,6 +217,35 @@ async function switchTab(tab, options = {}) {
   if (tab === 'calendar') await _lazyRenderCalendar();
 }
 
+function _initTabButtonRouter() {
+  document.addEventListener('click', (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    const btn = target.closest('.tab-btn[data-tab]');
+    if (!btn) return;
+
+    const tab = btn.dataset.tab;
+    if (!tab) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+
+    if (tab === 'more') {
+      if (btn.dataset.mode === 'admin-only') {
+        switchTab('admin').catch((err) => console.error('[tab-router] admin tab failed:', err));
+      } else {
+        window.toggleMoreMenu?.();
+      }
+      return;
+    }
+
+    switchTab(tab)
+      .then(() => {
+        if (btn.closest('#more-menu')) window.toggleMoreMenu?.();
+      })
+      .catch((err) => console.error('[tab-router] tab switch failed:', err));
+  }, true);
+}
+
 async function renderAll() {
   if (_currentTab === 'admin') {
     await _lazyRenderAdmin();
@@ -419,6 +448,7 @@ function _initDietInputButtons() {
 
 init();
 _initDietInputButtons();
+_initTabButtonRouter();
 
 // ── window 등록 ──────────────────────────────────────────────────
 window.renderAll                = renderAll;

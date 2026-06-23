@@ -149,3 +149,76 @@ test('treats diet-only Jups record as diet state in life zone', () => {
   assert.equal(actors[0].slot.id, 'island-left');
   assert.equal(actors[0].speech, '점심냠냠');
 });
+
+test('assigns separate diet slots when one actor has dinner and another has snack', () => {
+  const actors = resolveLifeZoneActors({
+    accounts: [
+      { id: 'u1', resolvedNickname: '줍스' },
+      { id: 'u2', resolvedNickname: '문정토마토' },
+      { id: 'u3', resolvedNickname: '이재헌' }
+    ],
+    friends: [{ friendId: 'u2' }, { friendId: 'u3' }],
+    currentUser: { id: 'u1' },
+    dayByAccountId: {
+      u1: { dinner: '저녁', dKcal: 500 },
+      u2: { snack: '간식', sKcal: 120 },
+      u3: {}
+    }
+  });
+
+  assert.deepEqual(actors.map((actor) => actor.state), ['diet', 'diet', 'office']);
+  assert.deepEqual(actors.map((actor) => actor.slot.id), ['island-left', 'island-center', 'desk-upper']);
+  assert.deepEqual(actors.map((actor) => actor.speech), ['저녁냠냠', '간식냠냠', '다른 일 하는중']);
+});
+
+test('uses latest diet activity over workout when lifeZoneLastActivity says snack', () => {
+  const actors = resolveLifeZoneActors({
+    accounts: [
+      { id: 'u1', resolvedNickname: '줍스' },
+      { id: 'u2', resolvedNickname: '문정토마토' },
+      { id: 'u3', resolvedNickname: '이재헌' }
+    ],
+    friends: [{ friendId: 'u2' }, { friendId: 'u3' }],
+    currentUser: { id: 'u1' },
+    dayByAccountId: {
+      u1: { dinner: '저녁', dKcal: 500 },
+      u2: {
+        exercises: [{ muscleId: 'chest', sets: [{ done: true }] }],
+        dinner: '저녁',
+        dKcal: 600,
+        snack: '간식',
+        sKcal: 120,
+        lifeZoneLastActivity: { state: 'diet', meal: 'snack', updatedAt: 2000 }
+      },
+      u3: {}
+    }
+  });
+
+  assert.equal(actors[1].displayName, '문정토마토');
+  assert.equal(actors[1].state, 'diet');
+  assert.equal(actors[1].slot.id, 'island-center');
+  assert.equal(actors[1].speech, '간식냠냠');
+});
+
+test('uses legacy snack diet fallback over workout when no lifeZoneLastActivity exists', () => {
+  const actors = resolveLifeZoneActors({
+    accounts: [
+      { id: 'u1', resolvedNickname: '줍스' },
+      { id: 'u2', resolvedNickname: '문정토마토' }
+    ],
+    friends: [{ friendId: 'u2' }],
+    currentUser: { id: 'u1' },
+    dayByAccountId: {
+      u1: { dinner: '저녁', dKcal: 500 },
+      u2: {
+        exercises: [{ muscleId: 'chest', sets: [{ done: true }] }],
+        snack: '간식',
+        sKcal: 120
+      }
+    }
+  });
+
+  assert.equal(actors[1].displayName, '문정토마토');
+  assert.equal(actors[1].state, 'diet');
+  assert.equal(actors[1].speech, '간식냠냠');
+});

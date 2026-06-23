@@ -3,41 +3,36 @@
 ## 현재 상태
 
 - 상태: `complete`
-- 계획 문서: `docs/ai/features/2026-06-23-stats-muscle-fatigue-render.md` (통계 탭 근육 피로도 렌더 보강)
-- 현재 단계: `review complete — Slice 1 통계 탭 근육 피로도 카드 추가 및 운영 반영`
-- 마지막 완료: `첨부 스크린샷의 인체 렌더링을 추출해 통계 탭 상단에 근육 피로도 카드로 추가하고, 일별/주별/월별 버튼 전환과 서비스워커/운영 빌드 반영을 완료했다.`
-- 다음 액션: `없음. 배포 검증까지 완료.`
-- 차단 사유: `없음. 단, 로컬 계정에 최근 30일 운동 기록이 없어 실제 데이터 기반 색 오버레이가 켜진 상태는 시각 검증하지 못했다.`
+- 계획 문서: `docs/ai/features/2026-06-23-home-life-zone-card.md` Slice 11 + `docs/ai/features/2026-06-20-calendar-workout-tab.md` 후속 보정
+- 현재 단계: `review complete — tomatofarm-refactor 중단 작업 조율 마무리`
+- 마지막 완료: `최신 tomatofarm/main 통계 근육 피로도 작업을 fast-forward로 통합한 뒤, 라이프존 최근 식단 입력 우선 반영과 식단 저장 경로 보정, 캘린더 하단 탭 캡처 라우터 보강, service worker 캐시 버전 조율을 완료했다.`
+- 다음 액션: `없음. 로그인된 실제 사용자 세션에서 홈 라이프존 간식 재저장과 캘린더 운동 탭 클릭을 한 번 수동 확인하면 된다.`
+- 차단 사유: `Codex in-app browser는 무로그인 상태의 로그인/모달 레이어가 하단 nav 위를 덮어 실제 탭 클릭 이벤트가 버튼까지 도달하지 않았다. HTTP 200, 정적 자산, 단위/정적 테스트는 통과했다.`
 
 ## 다음 실행 대상
 
-- 완료 파일: `assets/stats/muscle-fatigue-body.png` · `index.html` · `render-stats.js` · `style.css` · `sw.js` · `scripts/copy-www.js` · `build-info.json` · `docs/ai/features/2026-06-23-stats-muscle-fatigue-render.md` · `docs/ai/reviews/2026-06-23-stats-muscle-fatigue-render-review.md`
-- 방금 완료한 Slice 1:
-  1. `assets/stats/muscle-fatigue-body.png`에 첨부 스크린샷의 인체 렌더링 추출
-  2. `index.html` 통계 탭 상단에 `#stats-muscle-fatigue` 카드 컨테이너 추가
-  3. `render-stats.js`에 1/7/30일 근육 피로도 집계와 `일별/주별/월별` 버튼 바인딩 추가
-  4. `style.css`에 근육 피로도 카드/인체 오버레이/라이트 테마 예외 스타일 추가
-  5. `sw.js` `CACHE_VERSION`을 `tomatofarm-v20260623z10-stats-muscle-fatigue`로 bump하고 새 이미지 precache 추가
-  6. `scripts/copy-www.js`가 `assets` 폴더를 운영 산출물에 복사하도록 보강
-  7. `docs/ai/reviews/2026-06-23-stats-muscle-fatigue-render-review.md` 작성
+- 완료 파일: `app.js` · `home/life-zone-state.js` · `workout/save.js` · `workout/save-schema.js` · `workout/render.js` · `workout-ui.js` · `modals/ai-estimate-banner.js` · `sw.js` · `tests/home-life-zone-state.test.js` · `tests/save-schema.test.js` · `tests/diet-add-button-binding.test.js` · `docs/ai/features/2026-06-23-home-life-zone-card.md` · `docs/ai/features/2026-06-20-calendar-workout-tab.md` · `docs/ai/reviews/2026-06-23-home-life-zone-last-activity-review.md` · `docs/ai/reviews/2026-06-20-calendar-workout-bodyparts-review.md`
+- 방금 완료한 조율:
+  1. 현재 브랜치를 `tomatofarm/main` 최신 `73efd4c`까지 fast-forward해 통계 근육 피로도 작업과 충돌 없이 통합
+  2. `lifeZoneLastActivity`, `lifeZoneWorkoutActivity`, `lifeZoneDietActivity` snapshot을 저장 payload에 추가
+  3. 식단 사진/AI 확정/음식 추가 저장 경로를 `_autoSaveDiet({ meal })`로 보정
+  4. 기존 snapshot이 없는 날도 간식 기록이 있으면 운동보다 식단 actor를 우선하는 fallback 추가
+  5. 하단/더보기 탭 버튼을 캡처 단계 라우터로 처리해 legacy inline handler 의존과 중복 실행 위험 완화
+  6. `sw.js` `CACHE_VERSION`을 `tomatofarm-v20260623z12-stats-life-zone-tab-router`로 갱신
 - 검증 완료:
-  1. PASS: `node --check render-stats.js`
-  2. PASS: `node --check sw.js`
-  3. PASS: `node --check scripts/copy-www.js`
-  4. PASS: `git diff --check`
-  5. PASS: `http://localhost:5500` HTTP 200 및 기존 로컬 로그인 세션에서 통계 탭 카드 렌더 확인
-  6. PASS: `일별/주별/월별` 버튼 클릭 시 활성 상태와 헤딩 변경 확인
-  7. PASS: `http://localhost:5502` clean worktree 서버 HTTP 200 및 `assets/stats/muscle-fatigue-body.png` HTTP 200
-  8. PASS: `npm.cmd run build`
-  9. PASS: `build-info.json`, `sw.js`, `www/sw.js` 캐시 버전 `tomatofarm-v20260623z10-stats-muscle-fatigue` 일치
-  10. PASS: `www/assets/stats/muscle-fatigue-body.png` 생성 확인
-  11. PASS: `git push tomatofarm main`
-  12. PASS: 운영 URL HTTP 200 및 원격 `sw.js` 캐시 버전 확인
+  1. PASS: `node --check home/life-zone-state.js workout/save.js workout/save-schema.js workout/render.js workout-ui.js modals/ai-estimate-banner.js app.js sw.js render-stats.js render-calendar.js scripts/copy-www.js`
+  2. PASS: `node --test tests/*.test.js` — 453개 통과
+  3. PASS: `node --test tests/home-life-zone-state.test.js tests/save-schema.test.js tests/diet-add-button-binding.test.js` — 70개 통과
+  4. PASS: `node scripts/verify-runtime-assets.mjs` — `refs=786`
+  5. PASS: `git diff --check`
+  6. PASS: `npm.cmd run dev` 후 `http://localhost:5500/` HTTP 200
+  7. not verified yet: 무로그인 in-app browser에서는 로그인/모달 레이어가 하단 nav 위를 덮어 실제 캘린더 버튼 클릭이 `#tab-calendar`까지 도달하지 않음
 
 ## 보류 중 (이전 흐름)
 
+- `docs/ai/features/2026-06-23-home-life-zone-card.md` — Slice 11 라이프존 최근 식단 입력 우선 반영 보정 완료. 리뷰: `docs/ai/reviews/2026-06-23-home-life-zone-last-activity-review.md`. 실제 로그인 세션의 간식 재저장 클릭 플로우만 수동 확인 필요.
+- `docs/ai/features/2026-06-20-calendar-workout-tab.md` — 후속 탭 라우터 보정 완료. 무로그인 자동화는 overlay에 막혔으므로 실제 로그인 세션에서 하단 `캘린더` -> 내부 `운동` 탭만 수동 확인 필요.
 - `docs/ai/features/2026-06-12-test-mode-simplify-wendler.md` — v1 개편 실행 완료(커밋 2922b64까지), 리뷰 미수행. **v2 구현으로 v1은 동결 상태** — 해당 리뷰는 폐기 권장.
-- `docs/ai/features/2026-06-20-calendar-workout-tab.md` — Slice 1 구현, 리뷰, tomatofarm 원격 배포 완료. 후속 Slice 2는 로컬 정적 검증 완료, 브라우저 UI 플로우는 not verified yet.
 
 ## 상태값
 

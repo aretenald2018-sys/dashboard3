@@ -33,3 +33,15 @@
 - `npm.cmd run dev`
 - 하단 `캘린더` 탭 -> 내부 `운동` 탭
 - 운동 기록이 있는 날짜 셀에서 `케이블...`, `랫풀다운` 같은 종목명 대신 `복부 4`, `등 10` 같은 부위별 세트 라인이 보이면 통과
+
+## 2026-06-24 후속 보정
+
+- `app.js`에 캡처 단계 탭 라우터를 추가해 `.tab-btn[data-tab]` 클릭이 legacy inline handler에만 의존하지 않도록 보강했다.
+- `tests/diet-add-button-binding.test.js`에 라우터 등록과 `stopImmediatePropagation()` 회귀 테스트를 추가했다.
+- `app.js`는 `STATIC_ASSETS` 대상이므로 `sw.js` 캐시 버전을 `tomatofarm-v20260623z12-stats-life-zone-tab-router`로 갱신했다.
+- PASS: `node --check app.js`
+- PASS: `node --test tests/diet-add-button-binding.test.js tests/home-life-zone-state.test.js tests/save-schema.test.js` — 70개 통과
+- PASS: `node --test tests/*.test.js` — 453개 통과
+- PASS: `node scripts/verify-runtime-assets.mjs` — `refs=786`
+- PASS: `http://localhost:5500/` HTTP 200
+- not verified yet: in-app browser 무로그인 상태에서는 로그인/모달 레이어가 하단 nav 위를 덮어 실제 캘린더 버튼 클릭 이벤트가 nav까지 도달하지 않았다. 실제 사용자 로그인 세션에서 하단 `캘린더` 버튼과 내부 `운동` 탭을 확인해야 한다.

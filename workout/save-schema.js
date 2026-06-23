@@ -19,8 +19,9 @@ export const WORKOUT_PAYLOAD_KEYS = Object.freeze([
   'swimDistance', 'swimDurationMin', 'swimDurationSec', 'swimStroke', 'swimMemo',
   'workoutDuration', 'wine_free', 'memo', 'workoutPhoto',
   'gymId', 'pickerGymFilter', 'routineMeta', 'maxMeta',
+  'lifeZoneWorkoutActivity',
   // 공유 — 운동 변경이 dayTarget 을 바꾸므로 운동 경로도 bOk/lOk 재계산.
-  'bOk', 'lOk', 'dOk', 'sOk',
+  'bOk', 'lOk', 'dOk', 'sOk', 'lifeZoneLastActivity',
 ]);
 
 // 식단 경로가 쓰는 필드. 이 외 필드는 식단 저장에서 Firestore 로 가지 않음 → 운동 데이터 보호.
@@ -36,9 +37,11 @@ export const DIET_PAYLOAD_KEYS = Object.freeze([
   'bFoods', 'lFoods', 'dFoods', 'sFoods',
   'bPhoto', 'lPhoto', 'dPhoto', 'sPhoto',
   'bEstimateMeta', 'lEstimateMeta', 'dEstimateMeta', 'sEstimateMeta',
+  'lifeZoneDietActivity',
   // 공유 (위와 동일).
-  'bOk', 'lOk', 'dOk', 'sOk',
+  'bOk', 'lOk', 'dOk', 'sOk', 'lifeZoneLastActivity',
 ]);
 
-// 공유 필드 — 양쪽 payload 에 의도적으로 포함. 값은 동일한 _computeMealOk 계산 결과.
-export const SHARED_PAYLOAD_KEYS = Object.freeze(['bOk', 'lOk', 'dOk', 'sOk']);
+// 공유 필드 — 양쪽 payload 에 의도적으로 포함. b/l/d/sOk 는 동일 계산값이고,
+// lifeZoneLastActivity 는 마지막 저장 경로가 최신 행동으로 덮어쓴다.
+export const SHARED_PAYLOAD_KEYS = Object.freeze(['bOk', 'lOk', 'dOk', 'sOk', 'lifeZoneLastActivity']);

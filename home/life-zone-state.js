@@ -77,6 +77,7 @@ const MEALS = [
   { label: '저녁', text: 'dinner', foods: 'dFoods', kcal: 'dKcal', photo: 'dPhoto', skipped: 'dinner_skipped' },
   { label: '간식', text: 'snack', foods: 'sFoods', kcal: 'sKcal', photo: 'sPhoto', skipped: null }
 ];
+const MEAL_BY_TEXT = new Map(MEALS.map((meal) => [meal.text, meal]));
 
 export function normalizeLifeZoneName(value) {
   return String(value || '')
@@ -176,7 +177,58 @@ export function hasLifeZoneDietActivity(dayData = null) {
   return !!(dayData.bPhoto || dayData.lPhoto || dayData.dPhoto || dayData.sPhoto);
 }
 
+export function lifeZoneSnapshotTime(snapshot = null) {
+  if (!snapshot || typeof snapshot !== 'object') return 0;
+  const raw = snapshot.updatedAt ?? snapshot.at ?? snapshot.timestamp;
+  if (typeof raw === 'number' && Number.isFinite(raw)) return raw;
+  if (typeof raw === 'string') {
+    const parsed = Date.parse(raw);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+  if (raw && typeof raw.toMillis === 'function') return raw.toMillis();
+  if (raw && typeof raw.seconds === 'number') {
+    return raw.seconds * 1000 + Math.floor((raw.nanoseconds || 0) / 1000000);
+  }
+  return 0;
+}
+
+export function isValidLifeZoneSnapshotState(state, dayData = null) {
+  if (state === 'workout') return hasLifeZoneWorkoutActivity(dayData);
+  if (state === 'diet') return hasLifeZoneDietActivity(dayData);
+  if (state === 'office') return true;
+  return false;
+}
+
+export function normalizeLifeZoneSnapshot(snapshot = null, dayData = null) {
+  if (!snapshot || typeof snapshot !== 'object') return null;
+  const state = String(snapshot.state || snapshot.type || '').trim();
+  if (!isValidLifeZoneSnapshotState(state, dayData)) return null;
+  const meal = state === 'diet' ? (MEAL_BY_TEXT.get(String(snapshot.meal || '').trim())?.text || null) : null;
+  return {
+    state,
+    meal,
+    updatedAt: lifeZoneSnapshotTime(snapshot)
+  };
+}
+
+export function resolveLifeZoneActivitySnapshot(dayData = null) {
+  if (!dayData) return null;
+  const last = normalizeLifeZoneSnapshot(dayData.lifeZoneLastActivity, dayData);
+  if (last) return last;
+  const candidates = [
+    normalizeLifeZoneSnapshot(dayData.lifeZoneWorkoutActivity, dayData),
+    normalizeLifeZoneSnapshot(dayData.lifeZoneDietActivity, dayData)
+  ].filter(Boolean);
+  candidates.sort((a, b) => b.updatedAt - a.updatedAt);
+  return candidates[0] || null;
+}
+
 export function resolveLifeZoneActivity(dayData = null) {
+  const snapshot = resolveLifeZoneActivitySnapshot(dayData);
+  if (snapshot) return snapshot.state;
+  if (hasLifeZoneWorkoutActivity(dayData) && hasLifeZoneDietActivity(dayData) && mealHasRecord(dayData, MEAL_BY_TEXT.get('snack'))) {
+    return 'diet';
+  }
   if (hasLifeZoneWorkoutActivity(dayData)) return 'workout';
   if (hasLifeZoneDietActivity(dayData)) return 'diet';
   return 'office';
@@ -241,13 +293,28 @@ function mealHasRecord(dayData, meal) {
   );
 }
 
-export function getLifeZoneDietSpeech(dayData = null) {
-  if (!hasLifeZoneDietActivity(dayData)) return '';
+function resolveDietSpeechMeal(dayData = null) {
+  const latest = resolveLifeZoneActivitySnapshot(dayData);
+  if (latest?.state === 'diet' && latest.meal) {
+    const meal = MEAL_BY_TEXT.get(latest.meal);
+    if (meal && mealHasRecord(dayData, meal)) return meal;
+  }
+  const dietSnapshot = normalizeLifeZoneSnapshot(dayData?.lifeZoneDietActivity, dayData);
+  if (dietSnapshot?.meal) {
+    const meal = MEAL_BY_TEXT.get(dietSnapshot.meal);
+    if (meal && mealHasRecord(dayData, meal)) return meal;
+  }
   for (let i = MEALS.length - 1; i >= 0; i--) {
     const meal = MEALS[i];
-    if (!mealHasRecord(dayData, meal)) continue;
-    return meal.skipped && dayData?.[meal.skipped] ? `${meal.label}기록` : `${meal.label}냠냠`;
+    if (mealHasRecord(dayData, meal)) return meal;
   }
+  return null;
+}
+
+export function getLifeZoneDietSpeech(dayData = null) {
+  if (!hasLifeZoneDietActivity(dayData)) return '';
+  const meal = resolveDietSpeechMeal(dayData);
+  if (meal) return meal.skipped && dayData?.[meal.skipped] ? `${meal.label}기록` : `${meal.label}냠냠`;
   return '식단냠냠';
 }
 

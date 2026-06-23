@@ -4,9 +4,9 @@
 //   실행: node --test tests/save-schema.test.js
 //
 // 핵심 주장:
-//   (1) WORKOUT_PAYLOAD_KEYS 는 운동 도메인 필드 + 공유 bOk/lOk/dOk/sOk 만 포함.
-//   (2) DIET_PAYLOAD_KEYS 는 식단 도메인 필드 + 공유 bOk/lOk/dOk/sOk 만 포함.
-//   (3) 교집합 = SHARED_PAYLOAD_KEYS (즉 {bOk,lOk,dOk,sOk}).
+//   (1) WORKOUT_PAYLOAD_KEYS 는 운동 도메인 필드 + 공유 bOk/lOk/dOk/sOk/lifeZoneLastActivity 만 포함.
+//   (2) DIET_PAYLOAD_KEYS 는 식단 도메인 필드 + 공유 bOk/lOk/dOk/sOk/lifeZoneLastActivity 만 포함.
+//   (3) 교집합 = SHARED_PAYLOAD_KEYS (즉 {bOk,lOk,dOk,sOk,lifeZoneLastActivity}).
 //   (4) 운동 필드는 식단 키셋에 없음 (식단 저장이 운동 데이터 파괴 못함).
 //   (5) 식단 필드는 운동 키셋에 없음 (운동 저장이 식단 데이터 파괴 못함).
 // ================================================================
@@ -31,8 +31,8 @@ test('WORKOUT_PAYLOAD_KEYS 중복 없음', () => {
 test('DIET_PAYLOAD_KEYS 중복 없음', () => {
   assert.equal(dietSet.size, DIET_PAYLOAD_KEYS.length);
 });
-test('SHARED_PAYLOAD_KEYS = {bOk,lOk,dOk,sOk}', () => {
-  assert.deepEqual([...sharedSet].sort(), ['bOk', 'dOk', 'lOk', 'sOk']);
+test('SHARED_PAYLOAD_KEYS = {bOk,lOk,dOk,sOk,lifeZoneLastActivity}', () => {
+  assert.deepEqual([...sharedSet].sort(), ['bOk', 'dOk', 'lOk', 'lifeZoneLastActivity', 'sOk']);
 });
 
 // ── 교집합 = shared ─────────────────────────────────────────────
@@ -49,6 +49,7 @@ const WORKOUT_ONLY_SAMPLES = [
   'runDistance', 'cfWod', 'swimStroke', 'stretchDuration',
   'workoutDuration', 'wine_free', 'memo',
   'workoutPhoto', 'gymId', 'pickerGymFilter', 'routineMeta', 'maxMeta',
+  'lifeZoneWorkoutActivity',
 ];
 for (const key of WORKOUT_ONLY_SAMPLES) {
   test(`운동 필드 [${key}] 는 DIET_PAYLOAD_KEYS 에 **없음** (식단 저장이 파괴 금지)`, () => {
@@ -67,6 +68,7 @@ const DIET_ONLY_SAMPLES = [
   'bEstimateMeta', 'lEstimateMeta', 'dEstimateMeta', 'sEstimateMeta',
   'bProtein', 'lCarbs', 'dFat',
   'breakfast_skipped', 'lunch_skipped', 'dinner_skipped',
+  'lifeZoneDietActivity',
 ];
 for (const key of DIET_ONLY_SAMPLES) {
   test(`식단 필드 [${key}] 는 WORKOUT_PAYLOAD_KEYS 에 **없음** (운동 저장이 파괴 금지)`, () => {
